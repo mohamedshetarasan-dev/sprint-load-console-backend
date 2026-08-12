@@ -1,13 +1,9 @@
 // Sprint Load Console — backend
 //
 // Pulls User Stories -> child Tasks from Azure DevOps for a set of sprints,
-// classifies each task as "dev" or "testing" work (Activity field first, title
-// keywords as fallback), applies the effort fallback chain (Completed Work ->
-// Original Estimate -> Remaining Work), and returns per-sprint aggregates the
-// frontend dashboard can render.
-//
-// Project / Team / Area Path are no longer fixed in .env — they're selectable
-// from the UI. .env only supplies the org URL, the PAT, and optional defaults.
+// classifies each task as "dev" or "testing" work by title keyword,
+// applies the effort fallback chain (Completed Work -> Original Estimate -> Remaining Work),
+// and returns per-sprint aggregates the frontend dashboard can render.
 //
 // Nothing here ever sends the PAT to the browser — the frontend only ever
 // talks to this server, and this server is the only thing that talks to Azure DevOps.
@@ -19,20 +15,19 @@ const NodeCache = require('node-cache');
 
 const {
   AZURE_DEVOPS_ORG_URL,
+  AZURE_DEVOPS_PROJECT,
+  AZURE_DEVOPS_AREA_PATH,
+  AZURE_DEVOPS_TEAM,
   AZURE_DEVOPS_PAT,
-  DEFAULT_PROJECT,
-  DEFAULT_TEAM,
-  DEFAULT_AREA_PATH,
   SPRINT_ALLOWLIST,
   CACHE_TTL_SECONDS,
   PORT,
 } = process.env;
 
-if (!AZURE_DEVOPS_ORG_URL || !AZURE_DEVOPS_PAT) {
+if (!AZURE_DEVOPS_ORG_URL || !AZURE_DEVOPS_PROJECT || !AZURE_DEVOPS_PAT) {
   console.error(
     '[startup] Missing required env vars. Copy .env.example to .env and fill in ' +
-      'AZURE_DEVOPS_ORG_URL and AZURE_DEVOPS_PAT. (Project/Team/Area Path are now ' +
-      'chosen from the UI — DEFAULT_PROJECT/DEFAULT_TEAM/DEFAULT_AREA_PATH are optional.)'
+      'AZURE_DEVOPS_ORG_URL, AZURE_DEVOPS_PROJECT, and AZURE_DEVOPS_PAT.'
   );
   process.exit(1);
 }
@@ -67,54 +62,28 @@ async function adoFetch(url, options = {}) {
   return res.json();
 }
 
-// ---------- Step 1: discovery — projects, teams, area paths, sprints ----------
+// ---------- Step 1: discover sprints (if no allowlist given) ----------
 
-async function listProjects() {
-  const url = `${AZURE_DEVOPS_ORG_URL}/_apis/projects?api-version=7.1&$top=200`;
-  const data = await adoFetch(url);
-  return data.value.map((p) => ({ id: p.id, name: p.name }));
-}
-
-async function listTeams(project) {
-  const url = `${AZURE_DEVOPS_ORG_URL}/_apis/projects/${encodeURIComponent(project)}/teams?api-version=7.1`;
-  const data = await adoFetch(url);
-  return data.value.map((t) => ({ id: t.id, name: t.name }));
-}
-
-async function listAreaPaths(project) {
-  const url = `${AZURE_DEVOPS_ORG_URL}/${encodeURIComponent(
-    project
-  )}/_apis/wit/classificationnodes/areas?$depth=15&api-version=7.1`;
-  const root = await adoFetch(url);
-
-  const paths = [];
-  function walk(node, prefix) {
-    const full = prefix ? `${prefix}\\${node.name}` : node.name;
-    paths.push(full);
-    (node.children || []).forEach((child) => walk(child, full));
-  }
-  walk(root, '');
-  return paths;
-}
-
-async function getTeamIterations(project, team) {
-  const teamSeg = encodeURIComponent(team || '');
-  const projectSeg = encodeURIComponent(project);
-  const url = `${AZURE_DEVOPS_ORG_URL}/${projectSeg}/${teamSeg}/_apis/work/teamsettings/iterations?api-version=7.1`;
+async function getTeamIterations() {
+  const team = encodeURIComponent(AZURE_DEVOPS_TEAM || '');
+  const project = encodeURIComponent(AZURE_DEVOPS_PROJECT);
+  const url = `${AZURE_DEVOPS_ORG_URL}/${project}/${team}/_apis/work/teamsettings/iterations?api-version=7.1`;
   const data = await adoFetch(url);
   return data.value.map((it) => it.name);
 }
 
-async function resolveSprintList(project, team) {
+async function resolveSprintList() {
   if (SPRINT_ALLOWLIST && SPRINT_ALLOWLIST.trim().length > 0) {
     return SPRINT_ALLOWLIST.split(',').map((s) => s.trim()).filter(Boolean);
   }
-  return getTeamIterations(project, team);
+  return getTeamIterations();
 }
 
 // ---------- Step 2: WIQL — story -> task hierarchy links for the given sprints ----------
 
-async function getStoryTaskPairs(project, areaPath, sprintNames) {
+async function getStoryTaskPairs(sprintNames) {
+  const project = AZURE_DEVOPS_PROJECT;
+  const areaPath = AZURE_DEVOPS_AREA_PATH;
   const iterationList = sprintNames
     .map((s) => `'${project}\\${s.replace(/'/g, "''")}'`)
     .join(',');
@@ -219,8 +188,8 @@ function classifyTask(title, activity) {
 
 // ---------- Step 5: orchestrate + aggregate per sprint ----------
 
-function workItemUrl(project, id) {
-  return `${AZURE_DEVOPS_ORG_URL}/${encodeURIComponent(project)}/_workitems/edit/${id}`;
+function workItemUrl(id) {
+  return `${AZURE_DEVOPS_ORG_URL}/${encodeURIComponent(AZURE_DEVOPS_PROJECT)}/_workitems/edit/${id}`;
 }
 
 function effortSource(fields) {
@@ -230,8 +199,9 @@ function effortSource(fields) {
   return 'none (defaulted to 0)';
 }
 
-async function buildSprintData(project, areaPath, sprintNames) {
-  const { storyIds, taskIds, pairs } = await getStoryTaskPairs(project, areaPath, sprintNames);
+async function buildSprintData(sprintNames) {
+  const project = AZURE_DEVOPS_PROJECT;
+  const { storyIds, taskIds, pairs } = await getStoryTaskPairs(sprintNames);
 
   const storyItems = await batchGetWorkItems(storyIds, [
     'System.Id',
@@ -300,10 +270,10 @@ async function buildSprintData(project, areaPath, sprintNames) {
     bucket.details[cat].push({
       taskId,
       taskTitle: task.title,
-      taskUrl: workItemUrl(project, taskId),
+      taskUrl: workItemUrl(taskId),
       storyId,
       storyTitle: story.title,
-      storyUrl: workItemUrl(project, storyId),
+      storyUrl: workItemUrl(storyId),
       hours: round1(task.effort),
       effortSource: task.effortSource,
       activity: task.activity,
@@ -341,68 +311,13 @@ function round1(n) {
 
 // ---------- Routes ----------
 
-// Discovery endpoints — power the Project / Team / Area Path dropdowns in the UI.
-
-app.get('/api/projects', async (req, res) => {
-  try {
-    const cacheKey = 'projects';
-    let list = cache.get(cacheKey);
-    if (!list) {
-      list = await listProjects();
-      cache.set(cacheKey, list);
-    }
-    res.json({ projects: list, defaultProject: DEFAULT_PROJECT || null });
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: err.message });
-  }
-});
-
-app.get('/api/teams', async (req, res) => {
-  try {
-    const project = req.query.project;
-    if (!project) return res.status(400).json({ error: 'project query param is required' });
-    const cacheKey = `teams:${project}`;
-    let list = cache.get(cacheKey);
-    if (!list) {
-      list = await listTeams(project);
-      cache.set(cacheKey, list);
-    }
-    res.json({ teams: list, defaultTeam: DEFAULT_TEAM || null });
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: err.message });
-  }
-});
-
-app.get('/api/areas', async (req, res) => {
-  try {
-    const project = req.query.project;
-    if (!project) return res.status(400).json({ error: 'project query param is required' });
-    const cacheKey = `areas:${project}`;
-    let list = cache.get(cacheKey);
-    if (!list) {
-      list = await listAreaPaths(project);
-      cache.set(cacheKey, list);
-    }
-    res.json({ areas: list, defaultAreaPath: DEFAULT_AREA_PATH || null });
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: err.message });
-  }
-});
-
 app.get('/api/sprints', async (req, res) => {
   try {
-    const project = req.query.project || DEFAULT_PROJECT;
-    const team = req.query.team || DEFAULT_TEAM;
-    if (!project) return res.status(400).json({ error: 'project query param is required' });
-
-    const cacheKey = `sprint-list:${project}:${team || ''}`;
-    let list = cache.get(cacheKey);
+    const key = 'sprint-list';
+    let list = cache.get(key);
     if (!list) {
-      list = await resolveSprintList(project, team);
-      cache.set(cacheKey, list);
+      list = await resolveSprintList();
+      cache.set(key, list);
     }
     res.json({ sprints: list });
   } catch (err) {
@@ -413,24 +328,17 @@ app.get('/api/sprints', async (req, res) => {
 
 app.get('/api/sprint-data', async (req, res) => {
   try {
-    const project = req.query.project || DEFAULT_PROJECT;
-    const team = req.query.team || DEFAULT_TEAM;
-    const areaPath = req.query.areaPath || DEFAULT_AREA_PATH;
-
-    if (!project) return res.status(400).json({ error: 'project query param is required' });
-    if (!areaPath) return res.status(400).json({ error: 'areaPath query param is required' });
-
     const requested = req.query.sprints
       ? String(req.query.sprints).split(',').map((s) => s.trim()).filter(Boolean)
-      : await resolveSprintList(project, team);
+      : await resolveSprintList();
 
-    const cacheKey = `sprint-data:${project}:${areaPath}:` + requested.slice().sort().join('|');
+    const cacheKey = 'sprint-data:' + requested.slice().sort().join('|');
     const cached = cache.get(cacheKey);
     if (cached) {
       return res.json({ data: cached, cached: true });
     }
 
-    const data = await buildSprintData(project, areaPath, requested);
+    const data = await buildSprintData(requested);
     cache.set(cacheKey, data);
     res.json({ data, cached: false });
   } catch (err) {
@@ -445,12 +353,7 @@ app.post('/api/refresh', (req, res) => {
 });
 
 app.get('/api/health', (req, res) => {
-  res.json({
-    ok: true,
-    defaultProject: DEFAULT_PROJECT || null,
-    defaultTeam: DEFAULT_TEAM || null,
-    defaultAreaPath: DEFAULT_AREA_PATH || null,
-  });
+  res.json({ ok: true, project: AZURE_DEVOPS_PROJECT, areaPath: AZURE_DEVOPS_AREA_PATH });
 });
 
 const port = Number(PORT || 8787);

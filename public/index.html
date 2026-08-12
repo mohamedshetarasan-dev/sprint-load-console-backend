@@ -84,98 +84,9 @@
     margin-bottom:2px;
   }
 
-  .scope-field{
-    display:flex;
-    flex-direction:column;
-    gap:4px;
-    margin-bottom:10px;
-  }
-  .scope-field label{
-    font-family:'JetBrains Mono',monospace;
-    font-size:10px;
-    color:var(--muted);
-    text-transform:uppercase;
-    letter-spacing:0.06em;
-  }
-  .scope-field select{
-    background:var(--panel);
-    border:1px solid var(--line);
-    color:var(--text);
-    font-family:'Inter',sans-serif;
-    font-size:12.5px;
-    padding:8px 10px;
-    border-radius:7px;
-    cursor:pointer;
-    appearance:none;
-    -webkit-appearance:none;
-    background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%237c8aa6'/%3E%3C/svg%3E");
-    background-repeat:no-repeat;
-    background-position:right 10px center;
-  }
-  .scope-field select:disabled{opacity:0.45; cursor:not-allowed;}
-  .scope-field select:focus{outline:none; border-color:var(--sp);}
-
-  .apply-scope-btn{
-    width:100%;
-    background:linear-gradient(180deg, rgba(124,156,255,0.16), rgba(124,156,255,0.06));
-    border:1px solid var(--sp);
-    color:var(--text);
-    font-family:'JetBrains Mono',monospace;
-    font-size:12px;
-    font-weight:600;
-    padding:9px 10px;
-    border-radius:8px;
-    cursor:pointer;
-    transition:all .15s ease;
-    margin-top:2px;
-  }
-  .apply-scope-btn:hover:not(:disabled){background:rgba(124,156,255,0.24);}
-  .apply-scope-btn:disabled{opacity:0.4; cursor:not-allowed; border-color:var(--line);}
-
-  .scope-status{
-    font-family:'JetBrains Mono',monospace;
-    font-size:10.5px;
-    color:var(--muted);
-    margin-top:8px;
-    min-height:14px;
-  }
-  .scope-status.error{color:var(--danger);}
-  .scope-status.ok{color:var(--dev);}
-
-  .range-select{display:flex; gap:8px;}
-  .range-field{
+  .quick-actions{display:flex; gap:8px;}
+  .quick-actions button{
     flex:1;
-    display:flex;
-    flex-direction:column;
-    gap:4px;
-  }
-  .range-field label{
-    font-family:'JetBrains Mono',monospace;
-    font-size:10px;
-    color:var(--muted);
-    text-transform:uppercase;
-    letter-spacing:0.06em;
-  }
-  .range-field select{
-    background:var(--panel);
-    border:1px solid var(--line);
-    color:var(--text);
-    font-family:'JetBrains Mono',monospace;
-    font-size:12px;
-    padding:8px 9px;
-    border-radius:7px;
-    cursor:pointer;
-    appearance:none;
-    -webkit-appearance:none;
-    background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%237c8aa6'/%3E%3C/svg%3E");
-    background-repeat:no-repeat;
-    background-position:right 9px center;
-  }
-  .range-field select:focus{outline:none; border-color:var(--sp);}
-
-  .clear-range-btn{
-    width:100%;
-    margin-top:8px;
     background:transparent;
     border:1px solid var(--line);
     color:var(--muted);
@@ -186,7 +97,10 @@
     cursor:pointer;
     transition:all .15s ease;
   }
-  .clear-range-btn:hover{border-color:var(--sp); color:var(--text);}
+  .quick-actions button:hover{
+    border-color:var(--sp);
+    color:var(--text);
+  }
 
   .sprint-list{
     display:flex;
@@ -554,42 +468,19 @@
 <div class="wrap">
   <div class="sidebar">
     <div class="brand">
-      <div class="tag" id="brandTag">Loading…</div>
+      <div class="tag">TameeniPortal · Motor ShortTerm</div>
       <h1>Sprint Load Console</h1>
       <p>Story points vs. execution time, split by dev &amp; testing effort.</p>
     </div>
 
     <div>
-      <div class="sidebar-section-label" style="margin-bottom:8px;">Scope</div>
-      <div class="scope-field">
-        <label for="selProject">Project</label>
-        <select id="selProject" disabled><option>Loading…</option></select>
+      <div class="sidebar-section-label">Quick select</div>
+      <div class="quick-actions">
+        <button id="btnAll">All</button>
+        <button id="btnQ1">Q1 only</button>
+        <button id="btnQ2">Q2 only</button>
+        <button id="btnNone">Clear</button>
       </div>
-      <div class="scope-field">
-        <label for="selTeam">Team</label>
-        <select id="selTeam" disabled><option>Select a project first</option></select>
-      </div>
-      <div class="scope-field">
-        <label for="selArea">Area Path</label>
-        <select id="selArea" disabled><option>Select a project first</option></select>
-      </div>
-      <button id="btnApplyScope" class="apply-scope-btn" disabled>Apply &amp; reload sprints</button>
-      <div class="scope-status" id="scopeStatus"></div>
-    </div>
-
-    <div>
-      <div class="sidebar-section-label" style="margin-bottom:8px;">Sprint range</div>
-      <div class="range-select">
-        <div class="range-field">
-          <label for="selFrom">From</label>
-          <select id="selFrom"><option>—</option></select>
-        </div>
-        <div class="range-field">
-          <label for="selTo">To</label>
-          <select id="selTo"><option>—</option></select>
-        </div>
-      </div>
-      <button id="btnClearRange" class="clear-range-btn">Clear selection</button>
     </div>
 
     <div>
@@ -599,7 +490,7 @@
 
     <div class="footnote">
       Effort per task = <b>Completed Work</b>, else <b>Original Estimate</b>, else <b>Remaining Work</b>.<br><br>
-      Dev tasks matched on <b>Activity=Development</b>, else title keywords <b>BE / Backend / Dev / FE / Frontend</b>. Testing tasks matched on <b>Activity=Testing</b>, else <b>test(ing)</b> or <b>user story review</b> in the title.
+      Dev tasks matched on <b>BE / Backend / Dev / FE / Frontend</b>. Testing tasks matched on <b>test(ing)</b> or <b>user story review</b>. <b>Sprint 4.Q1.26</b> has zero linked stories in source data — likely a tracking gap for that sprint.
     </div>
   </div>
 
@@ -699,149 +590,14 @@ let selected = new Set(ORDER);
 let usingLiveData = false;
 
 const API_BASE = ''; // same-origin: backend serves this file from /public
-const SCOPE_STORAGE_KEY = 'sprintConsole.scope';
-
-let scope = { project: null, team: null, areaPath: null };
-
-function loadStoredScope(){
-  try{
-    const raw = localStorage.getItem(SCOPE_STORAGE_KEY);
-    if(raw) return JSON.parse(raw);
-  } catch(e){ /* ignore corrupt storage */ }
-  return null;
-}
-function saveScope(){
-  try{ localStorage.setItem(SCOPE_STORAGE_KEY, JSON.stringify(scope)); } catch(e){}
-}
-
-function setScopeStatus(msg, kind){
-  const el = document.getElementById('scopeStatus');
-  el.textContent = msg;
-  el.classList.remove('error','ok');
-  if(kind) el.classList.add(kind);
-}
-
-function updateBrandTag(){
-  const tag = document.getElementById('brandTag');
-  if(scope.project && scope.team){
-    tag.textContent = `${scope.project} · ${scope.team}`;
-  } else if(scope.project){
-    tag.textContent = scope.project;
-  } else {
-    tag.textContent = 'No project selected';
-  }
-}
-
-async function initScopeSelectors(){
-  const projectSel = document.getElementById('selProject');
-  const teamSel = document.getElementById('selTeam');
-  const areaSel = document.getElementById('selArea');
-  const applyBtn = document.getElementById('btnApplyScope');
-
-  try{
-    setScopeStatus('Loading projects…');
-    const res = await fetch(`${API_BASE}/api/projects`);
-    if(!res.ok) throw new Error('status ' + res.status);
-    const json = await res.json();
-
-    const stored = loadStoredScope();
-    const initialProject = stored?.project || json.defaultProject || (json.projects[0] && json.projects[0].name) || null;
-
-    projectSel.innerHTML = json.projects.map(p =>
-      `<option value="${escapeHtml(p.name)}" ${p.name===initialProject?'selected':''}>${escapeHtml(p.name)}</option>`
-    ).join('');
-    projectSel.disabled = false;
-
-    if(initialProject){
-      scope.project = initialProject;
-      await loadTeamsAndAreas(initialProject, stored);
-    }
-    setScopeStatus('');
-  } catch(err){
-    setScopeStatus('Could not load projects from backend — using offline snapshot', 'error');
-  }
-
-  projectSel.addEventListener('change', async () => {
-    scope.project = projectSel.value;
-    scope.team = null;
-    scope.areaPath = null;
-    await loadTeamsAndAreas(scope.project, null);
-  });
-  teamSel.addEventListener('change', () => { scope.team = teamSel.value; });
-  areaSel.addEventListener('change', () => { scope.areaPath = areaSel.value; });
-  applyBtn.addEventListener('click', applyScope);
-}
-
-async function loadTeamsAndAreas(project, stored){
-  const teamSel = document.getElementById('selTeam');
-  const areaSel = document.getElementById('selArea');
-  const applyBtn = document.getElementById('btnApplyScope');
-  teamSel.disabled = true;
-  areaSel.disabled = true;
-  applyBtn.disabled = true;
-  teamSel.innerHTML = `<option>Loading…</option>`;
-  areaSel.innerHTML = `<option>Loading…</option>`;
-
-  try{
-    const [teamsRes, areasRes] = await Promise.all([
-      fetch(`${API_BASE}/api/teams?project=${encodeURIComponent(project)}`),
-      fetch(`${API_BASE}/api/areas?project=${encodeURIComponent(project)}`),
-    ]);
-    if(!teamsRes.ok || !areasRes.ok) throw new Error('failed to load teams/areas');
-    const teamsJson = await teamsRes.json();
-    const areasJson = await areasRes.json();
-
-    const initialTeam = stored?.team || teamsJson.defaultTeam || (teamsJson.teams[0] && teamsJson.teams[0].name) || null;
-    const initialArea = stored?.areaPath || areasJson.defaultAreaPath || areasJson.areas[0] || null;
-
-    teamSel.innerHTML = teamsJson.teams.map(t =>
-      `<option value="${escapeHtml(t.name)}" ${t.name===initialTeam?'selected':''}>${escapeHtml(t.name)}</option>`
-    ).join('');
-    areaSel.innerHTML = areasJson.areas.map(a =>
-      `<option value="${escapeHtml(a)}" ${a===initialArea?'selected':''}>${escapeHtml(a)}</option>`
-    ).join('');
-
-    scope.team = initialTeam;
-    scope.areaPath = initialArea;
-    teamSel.disabled = false;
-    areaSel.disabled = false;
-    applyBtn.disabled = false;
-    updateBrandTag();
-  } catch(err){
-    setScopeStatus('Could not load teams/areas for this project', 'error');
-    teamSel.innerHTML = `<option>Failed to load</option>`;
-    areaSel.innerHTML = `<option>Failed to load</option>`;
-  }
-}
-
-async function applyScope(){
-  saveScope();
-  updateBrandTag();
-  setScopeStatus('Applying…');
-  await loadLiveData();
-}
 
 async function loadLiveData(){
   const statusEl = document.getElementById('dataSourceStatus');
   const wrapEl = document.getElementById('dataSourceWrap');
-
-  if(!scope.project || !scope.areaPath){
-    statusEl.textContent = 'Select a project and area path';
-    wrapEl.classList.remove('live');
-    wrapEl.classList.add('stale');
-    return;
-  }
-
-  const params = new URLSearchParams({ project: scope.project, areaPath: scope.areaPath });
-  if(scope.team) params.set('team', scope.team);
-
   try{
     statusEl.textContent = 'Connecting to Azure DevOps…';
-    const res = await fetch(`${API_BASE}/api/sprint-data?${params.toString()}`);
-    if(!res.ok){
-      const errJson = await res.json().catch(()=>({}));
-      throw new Error(errJson.error || ('Backend returned ' + res.status));
-    }
+    const res = await fetch(`${API_BASE}/api/sprint-data`);
+    if(!res.ok) throw new Error('Backend returned ' + res.status);
     const json = await res.json();
     DATA = json.data;
     ORDER = Object.keys(DATA);
@@ -852,13 +608,11 @@ async function loadLiveData(){
     statusEl.textContent = json.cached ? 'Live data (cached)' : 'Live data (fresh pull)';
     wrapEl.classList.remove('stale');
     wrapEl.classList.add('live');
-    setScopeStatus(`Loaded ${ORDER.length} sprints for ${scope.team || scope.project}`, 'ok');
   } catch(err){
     usingLiveData = false;
     statusEl.textContent = 'Backend unreachable — showing last known snapshot';
     wrapEl.classList.remove('live');
     wrapEl.classList.add('stale');
-    setScopeStatus(err.message || 'Failed to load sprint data', 'error');
   }
   renderSidebar();
   renderAll();
@@ -880,78 +634,6 @@ function fmt(n, d=1){
 }
 
 function renderSidebar(){
-  const list = document.getElementById('sprintList');
-  list.innerHTML = '';
-  ORDER.forEach(s => {
-    const d = DATA[s];
-    const empty = d.stories === 0;
-    const pill = document.createElement('div');
-    pill.className = 'sprint-pill' + (selected.has(s) ? ' active' : '') + (empty ? ' disabled' : '');
-    pill.innerHTML = `
-      <div class="left">
-        <span class="dot"></span>
-        <span class="name">${s.replace('Sprint ','')}</span>
-      </div>
-      <span class="count">${d.stories} st</span>
-    `;
-    if(!empty){
-      pill.addEventListener('click', () => {
-        if(selected.has(s)) selected.delete(s); else selected.add(s);
-        renderSidebar();
-        renderAll();
-      });
-    }
-    list.appendChild(pill);
-  });
-  renderRangeSelectors();
-}
-
-function renderRangeSelectors(){
-  const fromSel = document.getElementById('selFrom');
-  const toSel = document.getElementById('selTo');
-  if(ORDER.length === 0){
-    fromSel.innerHTML = '<option>—</option>';
-    toSel.innerHTML = '<option>—</option>';
-    return;
-  }
-
-  const options = ORDER.map((s,i) =>
-    `<option value="${i}">${escapeHtml(s.replace('Sprint ',''))}</option>`
-  ).join('');
-
-  // preserve current from/to indices if still valid, else default to current selection bounds
-  const selectedIdx = ORDER.map((s,i) => selected.has(s) ? i : -1).filter(i => i >= 0);
-  const defaultFrom = selectedIdx.length ? Math.min(...selectedIdx) : 0;
-  const defaultTo = selectedIdx.length ? Math.max(...selectedIdx) : ORDER.length - 1;
-
-  fromSel.innerHTML = options;
-  toSel.innerHTML = options;
-  fromSel.value = defaultFrom;
-  toSel.value = defaultTo;
-}
-
-function applySprintRange(){
-  const fromSel = document.getElementById('selFrom');
-  const toSel = document.getElementById('selTo');
-  const fromIdx = parseInt(fromSel.value, 10);
-  const toIdx = parseInt(toSel.value, 10);
-  if(Number.isNaN(fromIdx) || Number.isNaN(toIdx)) return;
-
-  const lo = Math.min(fromIdx, toIdx);
-  const hi = Math.max(fromIdx, toIdx);
-  selected = new Set(ORDER.slice(lo, hi + 1).filter(s => DATA[s].stories > 0));
-
-  // re-sync both dropdowns to the normalized order without re-triggering renderRangeSelectors' index recompute loop
-  fromSel.value = lo;
-  toSel.value = hi;
-
-  renderSidebarPillsOnly();
-  renderAll();
-}
-
-// updates just the pill highlighting (not the range dropdowns) to avoid
-// clobbering the from/to values mid-interaction
-function renderSidebarPillsOnly(){
   const list = document.getElementById('sprintList');
   list.innerHTML = '';
   ORDER.forEach(s => {
@@ -1218,23 +900,17 @@ function renderAll(){
   renderTable();
 }
 
-document.getElementById('selFrom').addEventListener('change', applySprintRange);
-document.getElementById('selTo').addEventListener('change', applySprintRange);
-document.getElementById('btnClearRange').addEventListener('click', () => {
-  selected = new Set();
-  renderSidebar();
-  renderAll();
-});
+document.getElementById('btnAll').addEventListener('click', ()=>{ selected = new Set(ORDER.filter(s=>DATA[s].stories>0)); renderSidebar(); renderAll(); });
+document.getElementById('btnNone').addEventListener('click', ()=>{ selected = new Set(); renderSidebar(); renderAll(); });
+document.getElementById('btnQ1').addEventListener('click', ()=>{ selected = new Set(Q1.filter(s=>DATA[s].stories>0)); renderSidebar(); renderAll(); });
+document.getElementById('btnQ2').addEventListener('click', ()=>{ selected = new Set(Q2.filter(s=>DATA[s].stories>0)); renderSidebar(); renderAll(); });
 
 document.getElementById('btnRefresh').addEventListener('click', refreshLiveData);
 
 selected = new Set(ORDER.filter(s => DATA[s].stories > 0));
 renderSidebar();
 renderAll();
-updateBrandTag();
-initScopeSelectors().then(() => {
-  if(scope.project && scope.areaPath) loadLiveData();
-});
+loadLiveData();
 </script>
 
 </body>
