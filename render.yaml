@@ -1,0 +1,23 @@
+services:
+  - type: web
+    name: sprint-load-console-backend
+    runtime: node
+    plan: free
+    buildCommand: npm install
+    startCommand: npm start
+    healthCheckPath: /api/health
+    envVars:
+      - key: AZURE_DEVOPS_ORG_URL
+        sync: false
+      - key: AZURE_DEVOPS_PAT
+        sync: false
+      - key: DEFAULT_PROJECT
+        sync: false
+      - key: DEFAULT_TEAM
+        sync: false
+      - key: DEFAULT_AREA_PATH
+        sync: false
+      - key: SPRINT_ALLOWLIST
+        sync: false
+      - key: CACHE_TTL_SECONDS
+        value: "900"

@@ -1,0 +1,1241 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Motor ShortTerm — Sprint Load Console</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=Inter:wght@400;500;600;700&display=swap');
+
+  :root{
+    --bg:#0a0f1a;
+    --panel:#111a2b;
+    --panel-2:#0d1522;
+    --line:#1f2c42;
+    --text:#e7ecf5;
+    --muted:#7c8aa6;
+    --dev:#4fd1c5;
+    --test:#f0b429;
+    --other:#4b5872;
+    --sp:#7c9cff;
+    --danger:#ef6a6a;
+    --radius:10px;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    background:var(--bg);
+    color:var(--text);
+    font-family:'Inter',sans-serif;
+    -webkit-font-smoothing:antialiased;
+  }
+  .mono{font-family:'JetBrains Mono',monospace;}
+
+  .wrap{
+    display:grid;
+    grid-template-columns:300px 1fr;
+    min-height:100vh;
+  }
+  @media (max-width:860px){
+    .wrap{grid-template-columns:1fr;}
+    .sidebar{border-right:none;border-bottom:1px solid var(--line);}
+  }
+
+  .sidebar{
+    background:var(--panel-2);
+    border-right:1px solid var(--line);
+    padding:24px 18px;
+    display:flex;
+    flex-direction:column;
+    gap:18px;
+  }
+  .brand{
+    display:flex;
+    flex-direction:column;
+    gap:4px;
+    padding-bottom:14px;
+    border-bottom:1px solid var(--line);
+  }
+  .brand .tag{
+    font-family:'JetBrains Mono',monospace;
+    font-size:11px;
+    letter-spacing:0.14em;
+    color:var(--sp);
+    text-transform:uppercase;
+  }
+  .brand h1{
+    font-size:18px;
+    margin:2px 0 0 0;
+    font-weight:700;
+    line-height:1.25;
+  }
+  .brand p{
+    margin:6px 0 0 0;
+    font-size:12px;
+    color:var(--muted);
+  }
+
+  .sidebar-section-label{
+    font-family:'JetBrains Mono',monospace;
+    font-size:10.5px;
+    letter-spacing:0.12em;
+    text-transform:uppercase;
+    color:var(--muted);
+    margin-bottom:2px;
+  }
+
+  .scope-field{
+    display:flex;
+    flex-direction:column;
+    gap:4px;
+    margin-bottom:10px;
+  }
+  .scope-field label{
+    font-family:'JetBrains Mono',monospace;
+    font-size:10px;
+    color:var(--muted);
+    text-transform:uppercase;
+    letter-spacing:0.06em;
+  }
+  .scope-field select{
+    background:var(--panel);
+    border:1px solid var(--line);
+    color:var(--text);
+    font-family:'Inter',sans-serif;
+    font-size:12.5px;
+    padding:8px 10px;
+    border-radius:7px;
+    cursor:pointer;
+    appearance:none;
+    -webkit-appearance:none;
+    background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%237c8aa6'/%3E%3C/svg%3E");
+    background-repeat:no-repeat;
+    background-position:right 10px center;
+  }
+  .scope-field select:disabled{opacity:0.45; cursor:not-allowed;}
+  .scope-field select:focus{outline:none; border-color:var(--sp);}
+
+  .apply-scope-btn{
+    width:100%;
+    background:linear-gradient(180deg, rgba(124,156,255,0.16), rgba(124,156,255,0.06));
+    border:1px solid var(--sp);
+    color:var(--text);
+    font-family:'JetBrains Mono',monospace;
+    font-size:12px;
+    font-weight:600;
+    padding:9px 10px;
+    border-radius:8px;
+    cursor:pointer;
+    transition:all .15s ease;
+    margin-top:2px;
+  }
+  .apply-scope-btn:hover:not(:disabled){background:rgba(124,156,255,0.24);}
+  .apply-scope-btn:disabled{opacity:0.4; cursor:not-allowed; border-color:var(--line);}
+
+  .scope-status{
+    font-family:'JetBrains Mono',monospace;
+    font-size:10.5px;
+    color:var(--muted);
+    margin-top:8px;
+    min-height:14px;
+  }
+  .scope-status.error{color:var(--danger);}
+  .scope-status.ok{color:var(--dev);}
+
+  .range-select{display:flex; gap:8px;}
+  .range-field{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    gap:4px;
+  }
+  .range-field label{
+    font-family:'JetBrains Mono',monospace;
+    font-size:10px;
+    color:var(--muted);
+    text-transform:uppercase;
+    letter-spacing:0.06em;
+  }
+  .range-field select{
+    background:var(--panel);
+    border:1px solid var(--line);
+    color:var(--text);
+    font-family:'JetBrains Mono',monospace;
+    font-size:12px;
+    padding:8px 9px;
+    border-radius:7px;
+    cursor:pointer;
+    appearance:none;
+    -webkit-appearance:none;
+    background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%237c8aa6'/%3E%3C/svg%3E");
+    background-repeat:no-repeat;
+    background-position:right 9px center;
+  }
+  .range-field select:focus{outline:none; border-color:var(--sp);}
+
+  .clear-range-btn{
+    width:100%;
+    margin-top:8px;
+    background:transparent;
+    border:1px solid var(--line);
+    color:var(--muted);
+    font-family:'JetBrains Mono',monospace;
+    font-size:11px;
+    padding:7px 6px;
+    border-radius:6px;
+    cursor:pointer;
+    transition:all .15s ease;
+  }
+  .clear-range-btn:hover{border-color:var(--sp); color:var(--text);}
+
+  .sprint-list{
+    display:flex;
+    flex-direction:column;
+    gap:6px;
+  }
+  .sprint-pill{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:10px;
+    padding:10px 12px;
+    border-radius:8px;
+    border:1px solid var(--line);
+    background:var(--panel);
+    cursor:pointer;
+    transition:all .15s ease;
+    user-select:none;
+  }
+  .sprint-pill:hover{border-color:#33456b;}
+  .sprint-pill.active{
+    border-color:var(--sp);
+    background:linear-gradient(180deg, rgba(124,156,255,0.10), rgba(124,156,255,0.03));
+  }
+  .sprint-pill .left{display:flex; align-items:center; gap:10px;}
+  .sprint-pill .dot{
+    width:9px;height:9px;border-radius:50%;
+    border:1.5px solid var(--muted);
+    flex-shrink:0;
+    transition:all .15s ease;
+  }
+  .sprint-pill.active .dot{
+    background:var(--sp);
+    border-color:var(--sp);
+    box-shadow:0 0 0 3px rgba(124,156,255,0.18);
+  }
+  .sprint-pill .name{
+    font-family:'JetBrains Mono',monospace;
+    font-size:12.5px;
+    font-weight:600;
+  }
+  .sprint-pill.disabled{
+    opacity:0.35;
+    cursor:not-allowed;
+  }
+  .sprint-pill .count{
+    font-family:'JetBrains Mono',monospace;
+    font-size:10.5px;
+    color:var(--muted);
+    background:var(--panel-2);
+    border:1px solid var(--line);
+    border-radius:20px;
+    padding:2px 8px;
+  }
+
+  .footnote{
+    margin-top:auto;
+    font-size:11px;
+    color:var(--muted);
+    line-height:1.5;
+    padding-top:14px;
+    border-top:1px solid var(--line);
+  }
+  .footnote b{color:var(--text);}
+
+  .main{
+    padding:28px 32px 60px 32px;
+    overflow-x:hidden;
+  }
+  .main-header{
+    display:flex;
+    justify-content:space-between;
+    align-items:flex-end;
+    flex-wrap:wrap;
+    gap:16px;
+    margin-bottom:22px;
+  }
+  .main-header h2{
+    margin:0;
+    font-size:22px;
+    font-weight:700;
+  }
+  .main-header .sub{
+    color:var(--muted);
+    font-size:13px;
+    margin-top:4px;
+  }
+  .method-chip{
+    font-family:'JetBrains Mono',monospace;
+    font-size:11px;
+    color:var(--muted);
+    border:1px dashed var(--line);
+    border-radius:8px;
+    padding:8px 12px;
+    max-width:320px;
+    line-height:1.5;
+  }
+  .method-chip b{color:var(--text)}
+
+  .data-source{
+    display:flex;
+    align-items:center;
+    gap:7px;
+    font-family:'JetBrains Mono',monospace;
+    font-size:11px;
+    color:var(--muted);
+    border:1px solid var(--line);
+    border-radius:20px;
+    padding:6px 12px;
+  }
+  .data-dot{
+    width:7px;height:7px;border-radius:50%;
+    background:var(--muted);
+    flex-shrink:0;
+  }
+  .data-source.live .data-dot{background:var(--dev); box-shadow:0 0 0 3px rgba(79,209,197,0.18);}
+  .data-source.stale .data-dot{background:var(--danger); box-shadow:0 0 0 3px rgba(239,106,106,0.18);}
+
+  .refresh-btn{
+    background:transparent;
+    border:1px solid var(--line);
+    color:var(--text);
+    font-family:'JetBrains Mono',monospace;
+    font-size:11.5px;
+    padding:7px 12px;
+    border-radius:8px;
+    cursor:pointer;
+    transition:all .15s ease;
+  }
+  .refresh-btn:hover{border-color:var(--sp); color:var(--sp);}
+
+  .stat-row{
+    display:grid;
+    grid-template-columns:repeat(4,1fr);
+    gap:14px;
+    margin-bottom:24px;
+  }
+  @media (max-width:760px){ .stat-row{grid-template-columns:repeat(2,1fr);} }
+
+  .stat-card{
+    background:var(--panel);
+    border:1px solid var(--line);
+    border-radius:var(--radius);
+    padding:16px 18px;
+    position:relative;
+    overflow:hidden;
+  }
+  .stat-card .label{
+    font-size:11px;
+    letter-spacing:0.08em;
+    text-transform:uppercase;
+    color:var(--muted);
+    font-family:'JetBrains Mono',monospace;
+  }
+  .stat-card .value{
+    font-family:'JetBrains Mono',monospace;
+    font-size:26px;
+    font-weight:700;
+    margin-top:6px;
+  }
+  .stat-card .delta{
+    font-size:11.5px;
+    margin-top:4px;
+    color:var(--muted);
+  }
+  .stat-card.accent-dev{border-top:2px solid var(--dev);}
+  .stat-card.accent-test{border-top:2px solid var(--test);}
+  .stat-card.accent-sp{border-top:2px solid var(--sp);}
+  .stat-card.accent-ratio{border-top:2px solid var(--danger);}
+
+  .panel{
+    background:var(--panel);
+    border:1px solid var(--line);
+    border-radius:var(--radius);
+    padding:20px;
+    margin-bottom:20px;
+  }
+  .panel h3{
+    margin:0 0 2px 0;
+    font-size:14px;
+    font-weight:700;
+  }
+  .panel .panel-sub{
+    font-size:12px;
+    color:var(--muted);
+    margin-bottom:14px;
+  }
+  .legend{
+    display:flex;
+    gap:16px;
+    flex-wrap:wrap;
+    font-size:12px;
+    color:var(--muted);
+    margin-bottom:10px;
+  }
+  .legend span{display:flex; align-items:center; gap:6px;}
+  .legend i{width:10px;height:10px;border-radius:3px;display:inline-block;}
+
+  table{
+    width:100%;
+    border-collapse:collapse;
+    font-size:12.5px;
+  }
+  th,td{
+    text-align:left;
+    padding:9px 10px;
+    border-bottom:1px solid var(--line);
+    white-space:nowrap;
+  }
+  th{
+    font-family:'JetBrains Mono',monospace;
+    font-size:10.5px;
+    letter-spacing:0.06em;
+    text-transform:uppercase;
+    color:var(--muted);
+    font-weight:600;
+  }
+  td.num, th.num{text-align:right; font-family:'JetBrains Mono',monospace;}
+  tr:last-child td{border-bottom:none;}
+  tr.total-row td{
+    font-weight:700;
+    border-top:1px solid var(--line);
+    background:var(--panel-2);
+  }
+  .bar-cell{
+    display:flex;
+    align-items:center;
+    gap:8px;
+  }
+  .bar-track{
+    flex:1;
+    height:6px;
+    background:var(--panel-2);
+    border-radius:4px;
+    overflow:hidden;
+    display:flex;
+    min-width:60px;
+  }
+  .bar-dev{background:var(--dev); height:100%;}
+  .bar-test{background:var(--test); height:100%;}
+  .bar-other{background:var(--other); height:100%;}
+
+  .empty-state{
+    text-align:center;
+    color:var(--muted);
+    padding:50px 20px;
+    font-family:'JetBrains Mono',monospace;
+    font-size:13px;
+  }
+
+  canvas{max-height:340px;}
+
+  .drillable{
+    cursor:pointer;
+    border-bottom:1px dashed currentColor;
+    transition:opacity .15s ease;
+  }
+  .drillable:hover{opacity:0.75;}
+  .stat-card .value.drillable{border-bottom-width:2px;}
+
+  .modal-backdrop{
+    display:none;
+    position:fixed;
+    inset:0;
+    background:rgba(6,10,18,0.72);
+    backdrop-filter:blur(2px);
+    z-index:50;
+    align-items:flex-start;
+    justify-content:center;
+    padding:6vh 16px;
+    overflow-y:auto;
+  }
+  .modal-backdrop.open{display:flex;}
+  .modal{
+    background:var(--panel);
+    border:1px solid var(--line);
+    border-radius:12px;
+    width:100%;
+    max-width:760px;
+    max-height:82vh;
+    display:flex;
+    flex-direction:column;
+    box-shadow:0 20px 60px rgba(0,0,0,0.45);
+  }
+  .modal-header{
+    display:flex;
+    justify-content:space-between;
+    align-items:flex-start;
+    padding:18px 20px;
+    border-bottom:1px solid var(--line);
+  }
+  .modal-header h3{margin:0; font-size:15px;}
+  .modal-sub{font-size:12px; color:var(--muted); margin-top:4px; font-family:'JetBrains Mono',monospace;}
+  .modal-close{
+    background:transparent;
+    border:1px solid var(--line);
+    color:var(--muted);
+    border-radius:6px;
+    width:28px; height:28px;
+    cursor:pointer;
+    font-size:13px;
+    flex-shrink:0;
+  }
+  .modal-close:hover{color:var(--text); border-color:var(--sp);}
+  .modal-body{
+    padding:6px 20px 20px 20px;
+    overflow-y:auto;
+  }
+  .drill-row{
+    display:grid;
+    grid-template-columns:1fr auto;
+    gap:4px 14px;
+    padding:11px 0;
+    border-bottom:1px solid var(--line);
+  }
+  .drill-row:last-child{border-bottom:none;}
+  .drill-task{
+    font-size:13px;
+    font-weight:600;
+  }
+  .drill-task a{color:var(--text); text-decoration:none;}
+  .drill-task a:hover{color:var(--sp);}
+  .drill-story{
+    font-size:11.5px;
+    color:var(--muted);
+    grid-column:1 / -1;
+  }
+  .drill-story a{color:var(--muted); text-decoration:none;}
+  .drill-story a:hover{color:var(--sp);}
+  .drill-hours{
+    font-family:'JetBrains Mono',monospace;
+    font-size:13px;
+    font-weight:700;
+    text-align:right;
+    white-space:nowrap;
+  }
+  .drill-source{
+    font-family:'JetBrains Mono',monospace;
+    font-size:10px;
+    color:var(--muted);
+    text-align:right;
+  }
+  .drill-empty{
+    text-align:center;
+    color:var(--muted);
+    padding:30px 10px;
+    font-family:'JetBrains Mono',monospace;
+    font-size:12.5px;
+  }
+  .drill-sprint-tag{
+    display:inline-block;
+    font-family:'JetBrains Mono',monospace;
+    font-size:10px;
+    color:var(--sp);
+    background:rgba(124,156,255,0.10);
+    border:1px solid rgba(124,156,255,0.3);
+    border-radius:4px;
+    padding:1px 6px;
+    margin-right:6px;
+  }
+</style>
+</head>
+<body>
+
+<div class="wrap">
+  <div class="sidebar">
+    <div class="brand">
+      <div class="tag" id="brandTag">Loading…</div>
+      <h1>Sprint Load Console</h1>
+      <p>Story points vs. execution time, split by dev &amp; testing effort.</p>
+    </div>
+
+    <div>
+      <div class="sidebar-section-label" style="margin-bottom:8px;">Scope</div>
+      <div class="scope-field">
+        <label for="selProject">Project</label>
+        <select id="selProject" disabled><option>Loading…</option></select>
+      </div>
+      <div class="scope-field">
+        <label for="selTeam">Team</label>
+        <select id="selTeam" disabled><option>Select a project first</option></select>
+      </div>
+      <div class="scope-field">
+        <label for="selArea">Area Path</label>
+        <select id="selArea" disabled><option>Select a project first</option></select>
+      </div>
+      <button id="btnApplyScope" class="apply-scope-btn" disabled>Apply &amp; reload sprints</button>
+      <div class="scope-status" id="scopeStatus"></div>
+    </div>
+
+    <div>
+      <div class="sidebar-section-label" style="margin-bottom:8px;">Sprint range</div>
+      <div class="range-select">
+        <div class="range-field">
+          <label for="selFrom">From</label>
+          <select id="selFrom"><option>—</option></select>
+        </div>
+        <div class="range-field">
+          <label for="selTo">To</label>
+          <select id="selTo"><option>—</option></select>
+        </div>
+      </div>
+      <button id="btnClearRange" class="clear-range-btn">Clear selection</button>
+    </div>
+
+    <div>
+      <div class="sidebar-section-label" style="margin-bottom:8px;">Sprints</div>
+      <div class="sprint-list" id="sprintList"></div>
+    </div>
+
+    <div class="footnote">
+      Effort per task = <b>Completed Work</b>, else <b>Original Estimate</b>, else <b>Remaining Work</b>.<br><br>
+      Dev tasks matched on <b>Activity=Development</b>, else title keywords <b>BE / Backend / Dev / FE / Frontend</b>. Testing tasks matched on <b>Activity=Testing</b>, else <b>test(ing)</b> or <b>user story review</b> in the title.
+    </div>
+  </div>
+
+  <div class="main">
+    <div class="main-header">
+      <div>
+        <h2>Selected sprint summary</h2>
+        <div class="sub" id="rangeLabel">—</div>
+      </div>
+      <div style="display:flex; align-items:center; gap:10px;">
+        <div class="data-source" id="dataSourceWrap">
+          <span class="data-dot"></span>
+          <span id="dataSourceStatus">Connecting…</span>
+        </div>
+        <button id="btnRefresh" class="refresh-btn" title="Re-pull from Azure DevOps, bypassing cache">↻ Refresh</button>
+      </div>
+    </div>
+
+    <div class="stat-row">
+      <div class="stat-card accent-sp">
+        <div class="label">Story Points</div>
+        <div class="value mono" id="sSp">0</div>
+        <div class="delta" id="sStories">0 stories</div>
+      </div>
+      <div class="stat-card accent-dev">
+        <div class="label">Dev Hours</div>
+        <div class="value mono drillable" id="sDev" title="Click to see contributing tasks">0</div>
+        <div class="delta" id="sDevPct">0% of total</div>
+      </div>
+      <div class="stat-card accent-test">
+        <div class="label">Testing Hours</div>
+        <div class="value mono drillable" id="sTest" title="Click to see contributing tasks">0</div>
+        <div class="delta" id="sTestPct">0% of total</div>
+      </div>
+      <div class="stat-card accent-ratio">
+        <div class="label">Hours / Point</div>
+        <div class="value mono" id="sRatio">0.0</div>
+        <div class="delta" id="sRatioNote">execution time per story point</div>
+      </div>
+    </div>
+
+    <div class="panel">
+      <h3>Execution time by sprint</h3>
+      <div class="panel-sub">Stacked hours (dev / testing / other) with story points overlaid as a line</div>
+      <div class="legend">
+        <span><i style="background:var(--dev)"></i>Dev hours</span>
+        <span><i style="background:var(--test)"></i>Testing hours</span>
+        <span><i style="background:var(--other)"></i>Other / unclassified</span>
+        <span><i style="background:var(--sp)"></i>Story points (line, right axis)</span>
+      </div>
+      <canvas id="mainChart"></canvas>
+    </div>
+
+    <div class="panel">
+      <h3>Sprint breakdown</h3>
+      <div class="panel-sub">Effort mix per selected sprint — click any hours figure to see the tasks behind it</div>
+      <div id="tableWrap"></div>
+    </div>
+  </div>
+</div>
+
+<div class="modal-backdrop" id="drillBackdrop">
+  <div class="modal">
+    <div class="modal-header">
+      <div>
+        <h3 id="drillTitle">Drill-down</h3>
+        <div class="modal-sub" id="drillSub"></div>
+      </div>
+      <button class="modal-close" id="drillClose">✕</button>
+    </div>
+    <div class="modal-body" id="drillBody"></div>
+  </div>
+</div>
+
+<script>
+// Fallback snapshot — used only if the backend is unreachable, so the
+// dashboard still shows something useful when opened standalone.
+// No task-level detail is embedded here, so drill-down is unavailable offline.
+const EMPTY_DETAILS = { dev: [], testing: [], other: [] };
+const FALLBACK_DATA = {
+  "Sprint 1.Q1.26": {sp:20.0, dev:161.0, testing:88.25, other:38.0, stories:19, details:EMPTY_DETAILS},
+  "Sprint 2.Q1.26": {sp:22.0, dev:89.0, testing:80.25, other:69.0, stories:23, details:EMPTY_DETAILS},
+  "Sprint 3.Q1.26": {sp:11.0, dev:53.5, testing:47.25, other:9.0, stories:13, details:EMPTY_DETAILS},
+  "Sprint 4.Q1.26": {sp:0.0, dev:0.0, testing:0.0, other:0.0, stories:0, details:EMPTY_DETAILS},
+  "Sprint 1.Q2.26": {sp:63.5, dev:331.0, testing:212.0, other:112.0, stories:32, details:EMPTY_DETAILS},
+  "Sprint 2.Q2.26": {sp:6.5, dev:22.5, testing:55.0, other:16.0, stories:5, details:EMPTY_DETAILS},
+  "Sprint 3.Q2.26": {sp:25.5, dev:97.5, testing:167.0, other:66.5, stories:25, details:EMPTY_DETAILS},
+  "Sprint 4.Q2.26": {sp:17.0, dev:84.0, testing:346.8, other:115.5, stories:22, details:EMPTY_DETAILS},
+  "Sprint 1.Q3.26": {sp:3.0, dev:23.0, testing:44.5, other:37.5, stories:15, details:EMPTY_DETAILS}
+};
+
+let DATA = FALLBACK_DATA;
+let ORDER = Object.keys(DATA);
+let Q1 = ORDER.filter(s => s.includes("Q1."));
+let Q2 = ORDER.filter(s => s.includes("Q2."));
+let selected = new Set(ORDER);
+let usingLiveData = false;
+
+const API_BASE = ''; // same-origin: backend serves this file from /public
+const SCOPE_STORAGE_KEY = 'sprintConsole.scope';
+
+let scope = { project: null, team: null, areaPath: null };
+
+function loadStoredScope(){
+  try{
+    const raw = localStorage.getItem(SCOPE_STORAGE_KEY);
+    if(raw) return JSON.parse(raw);
+  } catch(e){ /* ignore corrupt storage */ }
+  return null;
+}
+function saveScope(){
+  try{ localStorage.setItem(SCOPE_STORAGE_KEY, JSON.stringify(scope)); } catch(e){}
+}
+
+function setScopeStatus(msg, kind){
+  const el = document.getElementById('scopeStatus');
+  el.textContent = msg;
+  el.classList.remove('error','ok');
+  if(kind) el.classList.add(kind);
+}
+
+function updateBrandTag(){
+  const tag = document.getElementById('brandTag');
+  if(scope.project && scope.team){
+    tag.textContent = `${scope.project} · ${scope.team}`;
+  } else if(scope.project){
+    tag.textContent = scope.project;
+  } else {
+    tag.textContent = 'No project selected';
+  }
+}
+
+async function initScopeSelectors(){
+  const projectSel = document.getElementById('selProject');
+  const teamSel = document.getElementById('selTeam');
+  const areaSel = document.getElementById('selArea');
+  const applyBtn = document.getElementById('btnApplyScope');
+
+  try{
+    setScopeStatus('Loading projects…');
+    const res = await fetch(`${API_BASE}/api/projects`);
+    if(!res.ok) throw new Error('status ' + res.status);
+    const json = await res.json();
+
+    const stored = loadStoredScope();
+    const initialProject = stored?.project || json.defaultProject || (json.projects[0] && json.projects[0].name) || null;
+
+    projectSel.innerHTML = json.projects.map(p =>
+      `<option value="${escapeHtml(p.name)}" ${p.name===initialProject?'selected':''}>${escapeHtml(p.name)}</option>`
+    ).join('');
+    projectSel.disabled = false;
+
+    if(initialProject){
+      scope.project = initialProject;
+      await loadTeamsAndAreas(initialProject, stored);
+    }
+    setScopeStatus('');
+  } catch(err){
+    setScopeStatus('Could not load projects from backend — using offline snapshot', 'error');
+  }
+
+  projectSel.addEventListener('change', async () => {
+    scope.project = projectSel.value;
+    scope.team = null;
+    scope.areaPath = null;
+    await loadTeamsAndAreas(scope.project, null);
+  });
+  teamSel.addEventListener('change', () => { scope.team = teamSel.value; });
+  areaSel.addEventListener('change', () => { scope.areaPath = areaSel.value; });
+  applyBtn.addEventListener('click', applyScope);
+}
+
+async function loadTeamsAndAreas(project, stored){
+  const teamSel = document.getElementById('selTeam');
+  const areaSel = document.getElementById('selArea');
+  const applyBtn = document.getElementById('btnApplyScope');
+  teamSel.disabled = true;
+  areaSel.disabled = true;
+  applyBtn.disabled = true;
+  teamSel.innerHTML = `<option>Loading…</option>`;
+  areaSel.innerHTML = `<option>Loading…</option>`;
+
+  try{
+    const [teamsRes, areasRes] = await Promise.all([
+      fetch(`${API_BASE}/api/teams?project=${encodeURIComponent(project)}`),
+      fetch(`${API_BASE}/api/areas?project=${encodeURIComponent(project)}`),
+    ]);
+    if(!teamsRes.ok || !areasRes.ok) throw new Error('failed to load teams/areas');
+    const teamsJson = await teamsRes.json();
+    const areasJson = await areasRes.json();
+
+    const initialTeam = stored?.team || teamsJson.defaultTeam || (teamsJson.teams[0] && teamsJson.teams[0].name) || null;
+    const initialArea = stored?.areaPath || areasJson.defaultAreaPath || areasJson.areas[0] || null;
+
+    teamSel.innerHTML = teamsJson.teams.map(t =>
+      `<option value="${escapeHtml(t.name)}" ${t.name===initialTeam?'selected':''}>${escapeHtml(t.name)}</option>`
+    ).join('');
+    areaSel.innerHTML = areasJson.areas.map(a =>
+      `<option value="${escapeHtml(a)}" ${a===initialArea?'selected':''}>${escapeHtml(a)}</option>`
+    ).join('');
+
+    scope.team = initialTeam;
+    scope.areaPath = initialArea;
+    teamSel.disabled = false;
+    areaSel.disabled = false;
+    applyBtn.disabled = false;
+    updateBrandTag();
+  } catch(err){
+    setScopeStatus('Could not load teams/areas for this project', 'error');
+    teamSel.innerHTML = `<option>Failed to load</option>`;
+    areaSel.innerHTML = `<option>Failed to load</option>`;
+  }
+}
+
+async function applyScope(){
+  saveScope();
+  updateBrandTag();
+  setScopeStatus('Applying…');
+  await loadLiveData();
+}
+
+async function loadLiveData(){
+  const statusEl = document.getElementById('dataSourceStatus');
+  const wrapEl = document.getElementById('dataSourceWrap');
+
+  if(!scope.project || !scope.areaPath){
+    statusEl.textContent = 'Select a project and area path';
+    wrapEl.classList.remove('live');
+    wrapEl.classList.add('stale');
+    return;
+  }
+
+  const params = new URLSearchParams({ project: scope.project, areaPath: scope.areaPath });
+  if(scope.team) params.set('team', scope.team);
+
+  try{
+    statusEl.textContent = 'Connecting to Azure DevOps…';
+    const res = await fetch(`${API_BASE}/api/sprint-data?${params.toString()}`);
+    if(!res.ok){
+      const errJson = await res.json().catch(()=>({}));
+      throw new Error(errJson.error || ('Backend returned ' + res.status));
+    }
+    const json = await res.json();
+    DATA = json.data;
+    ORDER = Object.keys(DATA);
+    Q1 = ORDER.filter(s => s.includes("Q1."));
+    Q2 = ORDER.filter(s => s.includes("Q2."));
+    selected = new Set(ORDER.filter(s => DATA[s].stories > 0));
+    usingLiveData = true;
+    statusEl.textContent = json.cached ? 'Live data (cached)' : 'Live data (fresh pull)';
+    wrapEl.classList.remove('stale');
+    wrapEl.classList.add('live');
+    setScopeStatus(`Loaded ${ORDER.length} sprints for ${scope.team || scope.project}`, 'ok');
+  } catch(err){
+    usingLiveData = false;
+    statusEl.textContent = 'Backend unreachable — showing last known snapshot';
+    wrapEl.classList.remove('live');
+    wrapEl.classList.add('stale');
+    setScopeStatus(err.message || 'Failed to load sprint data', 'error');
+  }
+  renderSidebar();
+  renderAll();
+}
+
+async function refreshLiveData(){
+  const statusEl = document.getElementById('dataSourceStatus');
+  statusEl.textContent = 'Refreshing…';
+  try{
+    await fetch(`${API_BASE}/api/refresh`, {method:'POST'});
+    await loadLiveData();
+  } catch(err){
+    statusEl.textContent = 'Refresh failed';
+  }
+}
+
+function fmt(n, d=1){
+  return Number(n).toLocaleString(undefined, {minimumFractionDigits:d, maximumFractionDigits:d});
+}
+
+function renderSidebar(){
+  const list = document.getElementById('sprintList');
+  list.innerHTML = '';
+  ORDER.forEach(s => {
+    const d = DATA[s];
+    const empty = d.stories === 0;
+    const pill = document.createElement('div');
+    pill.className = 'sprint-pill' + (selected.has(s) ? ' active' : '') + (empty ? ' disabled' : '');
+    pill.innerHTML = `
+      <div class="left">
+        <span class="dot"></span>
+        <span class="name">${s.replace('Sprint ','')}</span>
+      </div>
+      <span class="count">${d.stories} st</span>
+    `;
+    if(!empty){
+      pill.addEventListener('click', () => {
+        if(selected.has(s)) selected.delete(s); else selected.add(s);
+        renderSidebar();
+        renderAll();
+      });
+    }
+    list.appendChild(pill);
+  });
+  renderRangeSelectors();
+}
+
+function renderRangeSelectors(){
+  const fromSel = document.getElementById('selFrom');
+  const toSel = document.getElementById('selTo');
+  if(ORDER.length === 0){
+    fromSel.innerHTML = '<option>—</option>';
+    toSel.innerHTML = '<option>—</option>';
+    return;
+  }
+
+  const options = ORDER.map((s,i) =>
+    `<option value="${i}">${escapeHtml(s.replace('Sprint ',''))}</option>`
+  ).join('');
+
+  // preserve current from/to indices if still valid, else default to current selection bounds
+  const selectedIdx = ORDER.map((s,i) => selected.has(s) ? i : -1).filter(i => i >= 0);
+  const defaultFrom = selectedIdx.length ? Math.min(...selectedIdx) : 0;
+  const defaultTo = selectedIdx.length ? Math.max(...selectedIdx) : ORDER.length - 1;
+
+  fromSel.innerHTML = options;
+  toSel.innerHTML = options;
+  fromSel.value = defaultFrom;
+  toSel.value = defaultTo;
+}
+
+function applySprintRange(){
+  const fromSel = document.getElementById('selFrom');
+  const toSel = document.getElementById('selTo');
+  const fromIdx = parseInt(fromSel.value, 10);
+  const toIdx = parseInt(toSel.value, 10);
+  if(Number.isNaN(fromIdx) || Number.isNaN(toIdx)) return;
+
+  const lo = Math.min(fromIdx, toIdx);
+  const hi = Math.max(fromIdx, toIdx);
+  selected = new Set(ORDER.slice(lo, hi + 1).filter(s => DATA[s].stories > 0));
+
+  // re-sync both dropdowns to the normalized order without re-triggering renderRangeSelectors' index recompute loop
+  fromSel.value = lo;
+  toSel.value = hi;
+
+  renderSidebarPillsOnly();
+  renderAll();
+}
+
+// updates just the pill highlighting (not the range dropdowns) to avoid
+// clobbering the from/to values mid-interaction
+function renderSidebarPillsOnly(){
+  const list = document.getElementById('sprintList');
+  list.innerHTML = '';
+  ORDER.forEach(s => {
+    const d = DATA[s];
+    const empty = d.stories === 0;
+    const pill = document.createElement('div');
+    pill.className = 'sprint-pill' + (selected.has(s) ? ' active' : '') + (empty ? ' disabled' : '');
+    pill.innerHTML = `
+      <div class="left">
+        <span class="dot"></span>
+        <span class="name">${s.replace('Sprint ','')}</span>
+      </div>
+      <span class="count">${d.stories} st</span>
+    `;
+    if(!empty){
+      pill.addEventListener('click', () => {
+        if(selected.has(s)) selected.delete(s); else selected.add(s);
+        renderSidebar();
+        renderAll();
+      });
+    }
+    list.appendChild(pill);
+  });
+}
+
+let chart;
+function renderChart(){
+  const labels = ORDER.filter(s => selected.has(s));
+  const dev = labels.map(s => DATA[s].dev);
+  const test = labels.map(s => DATA[s].testing);
+  const other = labels.map(s => DATA[s].other);
+  const sp = labels.map(s => DATA[s].sp);
+  const shortLabels = labels.map(s => s.replace('Sprint ',''));
+
+  const ctx = document.getElementById('mainChart').getContext('2d');
+  if(chart) chart.destroy();
+  chart = new Chart(ctx, {
+    data: {
+      labels: shortLabels,
+      datasets: [
+        { type:'bar', label:'Dev hours', data:dev, backgroundColor:'#4fd1c5', stack:'s', borderRadius:3, order:2 },
+        { type:'bar', label:'Testing hours', data:test, backgroundColor:'#f0b429', stack:'s', borderRadius:3, order:2 },
+        { type:'bar', label:'Other hours', data:other, backgroundColor:'#4b5872', stack:'s', borderRadius:3, order:2 },
+        { type:'line', label:'Story points', data:sp, borderColor:'#7c9cff', backgroundColor:'#7c9cff',
+          yAxisID:'y1', tension:0.3, pointRadius:4, pointBackgroundColor:'#7c9cff', borderWidth:2, order:1 }
+      ]
+    },
+    options: {
+      responsive:true,
+      maintainAspectRatio:false,
+      interaction:{mode:'index', intersect:false},
+      plugins:{
+        legend:{display:false},
+        tooltip:{
+          backgroundColor:'#0d1522',
+          borderColor:'#1f2c42',
+          borderWidth:1,
+          titleFont:{family:'JetBrains Mono'},
+          bodyFont:{family:'JetBrains Mono'},
+          padding:10
+        }
+      },
+      scales:{
+        x:{ grid:{color:'#1f2c42'}, ticks:{color:'#7c8aa6', font:{family:'JetBrains Mono', size:11}} },
+        y:{ stacked:true, grid:{color:'#1f2c42'}, ticks:{color:'#7c8aa6', font:{family:'JetBrains Mono', size:10}},
+            title:{display:true, text:'Hours', color:'#7c8aa6', font:{size:11}} },
+        y1:{ position:'right', grid:{display:false}, ticks:{color:'#7c9cff', font:{family:'JetBrains Mono', size:10}},
+             title:{display:true, text:'Story Points', color:'#7c9cff', font:{size:11}} }
+      }
+    }
+  });
+}
+
+function renderStats(){
+  const labels = ORDER.filter(s => selected.has(s));
+  let sp=0, dev=0, test=0, other=0, stories=0;
+  labels.forEach(s=>{
+    const d = DATA[s];
+    sp+=d.sp; dev+=d.dev; test+=d.testing; other+=d.other; stories+=d.stories;
+  });
+  const total = dev+test+other;
+  document.getElementById('sSp').textContent = fmt(sp,1);
+  document.getElementById('sStories').textContent = `${stories} stories`;
+  document.getElementById('sDev').textContent = fmt(dev,1);
+  document.getElementById('sDevPct').textContent = total ? `${fmt(100*dev/total,0)}% of total` : '—';
+  document.getElementById('sTest').textContent = fmt(test,1);
+  document.getElementById('sTestPct').textContent = total ? `${fmt(100*test/total,0)}% of total` : '—';
+  document.getElementById('sRatio').textContent = sp ? fmt(total/sp,2) : '—';
+  document.getElementById('sRatioNote').textContent = 'execution time per story point';
+
+  if(labels.length === 0){
+    document.getElementById('rangeLabel').textContent = 'No sprints selected';
+  } else if(labels.length === 1){
+    document.getElementById('rangeLabel').textContent = labels[0];
+  } else {
+    document.getElementById('rangeLabel').textContent = `${labels.length} sprints selected — ${labels[0].replace('Sprint ','')} → ${labels[labels.length-1].replace('Sprint ','')}`;
+  }
+
+  document.getElementById('sDev').onclick = () => openDrilldown(labels, ['dev'], 'Dev hours');
+  document.getElementById('sTest').onclick = () => openDrilldown(labels, ['testing'], 'Testing hours');
+}
+
+// ---------- Drill-down modal ----------
+
+const CAT_LABEL = { dev: 'Dev', testing: 'Testing', other: 'Other' };
+
+function collectDetails(sprintList, categories){
+  const rows = [];
+  sprintList.forEach(sprint => {
+    const d = DATA[sprint];
+    if(!d || !d.details) return;
+    categories.forEach(cat => {
+      (d.details[cat] || []).forEach(row => {
+        rows.push({ ...row, sprint, category: cat });
+      });
+    });
+  });
+  rows.sort((a,b) => b.hours - a.hours);
+  return rows;
+}
+
+function openDrilldown(sprintList, categories, label){
+  const rows = collectDetails(sprintList, categories);
+  const total = rows.reduce((s,r) => s + r.hours, 0);
+  const sprintNote = sprintList.length === 1
+    ? sprintList[0]
+    : `${sprintList.length} sprints (${sprintList[0].replace('Sprint ','')} → ${sprintList[sprintList.length-1].replace('Sprint ','')})`;
+
+  document.getElementById('drillTitle').textContent = `${label} — task breakdown`;
+  document.getElementById('drillSub').textContent = `${sprintNote} · ${rows.length} tasks · ${fmt(total,1)} hrs total`;
+
+  const body = document.getElementById('drillBody');
+  if(rows.length === 0){
+    body.innerHTML = `<div class="drill-empty">
+      No task-level detail available.${usingLiveData ? ' No tasks matched this category for the selected sprint(s).' : ' Connect to the live backend to see task-level detail — the offline snapshot only has totals.'}
+    </div>`;
+  } else {
+    body.innerHTML = rows.map(r => `
+      <div class="drill-row">
+        <div class="drill-task">
+          ${sprintList.length > 1 ? `<span class="drill-sprint-tag">${r.sprint.replace('Sprint ','')}</span>` : ''}
+          ${r.taskUrl ? `<a href="${r.taskUrl}" target="_blank" rel="noopener">${escapeHtml(r.taskTitle)}</a>` : escapeHtml(r.taskTitle)}
+        </div>
+        <div class="drill-hours">${fmt(r.hours,2)}h</div>
+        <div class="drill-story">
+          from story:
+          ${r.storyUrl ? `<a href="${r.storyUrl}" target="_blank" rel="noopener">${escapeHtml(r.storyTitle)}</a>` : escapeHtml(r.storyTitle || '')}
+        </div>
+        <div class="drill-source">${r.effortSource || ''}</div>
+      </div>
+    `).join('');
+  }
+
+  document.getElementById('drillBackdrop').classList.add('open');
+}
+
+function closeDrilldown(){
+  document.getElementById('drillBackdrop').classList.remove('open');
+}
+
+function escapeHtml(str){
+  const div = document.createElement('div');
+  div.textContent = str == null ? '' : str;
+  return div.innerHTML;
+}
+
+document.getElementById('drillClose').addEventListener('click', closeDrilldown);
+document.getElementById('drillBackdrop').addEventListener('click', (e) => {
+  if(e.target.id === 'drillBackdrop') closeDrilldown();
+});
+document.addEventListener('keydown', (e) => {
+  if(e.key === 'Escape') closeDrilldown();
+});
+
+function renderTable(){
+  const wrap = document.getElementById('tableWrap');
+  const labels = ORDER.filter(s => selected.has(s));
+  if(labels.length === 0){
+    wrap.innerHTML = `<div class="empty-state">Select at least one sprint on the left to see the breakdown.</div>`;
+    return;
+  }
+  let totalSp=0, totalDev=0, totalTest=0, totalOther=0, totalStories=0;
+  let rows = labels.map(s=>{
+    const d = DATA[s];
+    const total = d.dev+d.testing+d.other;
+    const ratio = d.sp ? (total/d.sp) : null;
+    totalSp+=d.sp; totalDev+=d.dev; totalTest+=d.testing; totalOther+=d.other; totalStories+=d.stories;
+    const devPct = total ? (d.dev/total*100) : 0;
+    const testPct = total ? (d.testing/total*100) : 0;
+    const otherPct = total ? (d.other/total*100) : 0;
+    return `
+      <tr>
+        <td class="mono">${s.replace('Sprint ','')}</td>
+        <td class="num">${d.stories}</td>
+        <td class="num">${fmt(d.sp,1)}</td>
+        <td class="num drillable" style="color:var(--dev)" data-sprint="${escapeHtml(s)}" data-cat="dev">${fmt(d.dev,1)}</td>
+        <td class="num drillable" style="color:var(--test)" data-sprint="${escapeHtml(s)}" data-cat="testing">${fmt(d.testing,1)}</td>
+        <td class="num drillable" style="color:var(--other)" data-sprint="${escapeHtml(s)}" data-cat="other">${fmt(d.other,1)}</td>
+        <td class="num drillable" data-sprint="${escapeHtml(s)}" data-cat="all">${fmt(total,1)}</td>
+        <td class="num">${ratio!==null ? fmt(ratio,2) : '—'}</td>
+        <td>
+          <div class="bar-cell">
+            <div class="bar-track">
+              <div class="bar-dev" style="width:${devPct}%"></div>
+              <div class="bar-test" style="width:${testPct}%"></div>
+              <div class="bar-other" style="width:${otherPct}%"></div>
+            </div>
+          </div>
+        </td>
+      </tr>
+    `;
+  }).join('');
+
+  const grandTotal = totalDev+totalTest+totalOther;
+  const grandRatio = totalSp ? grandTotal/totalSp : null;
+
+  wrap.innerHTML = `
+    <table>
+      <thead>
+        <tr>
+          <th>Sprint</th>
+          <th class="num">Stories</th>
+          <th class="num">Points</th>
+          <th class="num">Dev hrs</th>
+          <th class="num">Test hrs</th>
+          <th class="num">Other hrs</th>
+          <th class="num">Total hrs</th>
+          <th class="num">Hrs/pt</th>
+          <th>Mix</th>
+        </tr>
+      </thead>
+      <tbody>
+        ${rows}
+        <tr class="total-row">
+          <td>Total</td>
+          <td class="num">${totalStories}</td>
+          <td class="num">${fmt(totalSp,1)}</td>
+          <td class="num drillable" style="color:var(--dev)" data-sprint="__ALL__" data-cat="dev">${fmt(totalDev,1)}</td>
+          <td class="num drillable" style="color:var(--test)" data-sprint="__ALL__" data-cat="testing">${fmt(totalTest,1)}</td>
+          <td class="num drillable" style="color:var(--other)" data-sprint="__ALL__" data-cat="other">${fmt(totalOther,1)}</td>
+          <td class="num drillable" data-sprint="__ALL__" data-cat="all">${fmt(grandTotal,1)}</td>
+          <td class="num">${grandRatio!==null ? fmt(grandRatio,2) : '—'}</td>
+          <td></td>
+        </tr>
+      </tbody>
+    </table>
+  `;
+
+  wrap.querySelectorAll('.drillable[data-sprint]').forEach(cell => {
+    cell.addEventListener('click', () => {
+      const sprintAttr = cell.getAttribute('data-sprint');
+      const cat = cell.getAttribute('data-cat');
+      const sprintList = sprintAttr === '__ALL__' ? labels : [sprintAttr];
+      const categories = cat === 'all' ? ['dev','testing','other'] : [cat];
+      const labelText = cat === 'all' ? 'All hours' : `${CAT_LABEL[cat]} hours`;
+      openDrilldown(sprintList, categories, labelText);
+    });
+  });
+}
+
+function renderAll(){
+  renderChart();
+  renderStats();
+  renderTable();
+}
+
+document.getElementById('selFrom').addEventListener('change', applySprintRange);
+document.getElementById('selTo').addEventListener('change', applySprintRange);
+document.getElementById('btnClearRange').addEventListener('click', () => {
+  selected = new Set();
+  renderSidebar();
+  renderAll();
+});
+
+document.getElementById('btnRefresh').addEventListener('click', refreshLiveData);
+
+selected = new Set(ORDER.filter(s => DATA[s].stories > 0));
+renderSidebar();
+renderAll();
+updateBrandTag();
+initScopeSelectors().then(() => {
+  if(scope.project && scope.areaPath) loadLiveData();
+});
+</script>
+
+</body>
+</html>
