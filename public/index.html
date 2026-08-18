@@ -98,16 +98,22 @@
     letter-spacing:0.06em;
   }
   .scope-field select{
+    width:100%;
+    min-width:0;
+    max-width:100%;
     background:var(--panel);
     border:1px solid var(--line);
     color:var(--text);
     font-family:'Inter',sans-serif;
     font-size:12.5px;
-    padding:8px 10px;
+    padding:8px 24px 8px 10px;
     border-radius:7px;
     cursor:pointer;
     appearance:none;
     -webkit-appearance:none;
+    white-space:nowrap;
+    overflow:hidden;
+    text-overflow:ellipsis;
     background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%237c8aa6'/%3E%3C/svg%3E");
     background-repeat:no-repeat;
     background-position:right 10px center;
@@ -142,9 +148,10 @@
   .scope-status.error{color:var(--danger);}
   .scope-status.ok{color:var(--dev);}
 
-  .range-select{display:flex; gap:8px;}
+  .range-select{display:flex; gap:8px; min-width:0;}
   .range-field{
-    flex:1;
+    flex:1 1 0;
+    min-width:0;
     display:flex;
     flex-direction:column;
     gap:4px;
@@ -157,16 +164,22 @@
     letter-spacing:0.06em;
   }
   .range-field select{
+    width:100%;
+    min-width:0;
+    max-width:100%;
     background:var(--panel);
     border:1px solid var(--line);
     color:var(--text);
     font-family:'JetBrains Mono',monospace;
     font-size:12px;
-    padding:8px 9px;
+    padding:8px 24px 8px 9px;
     border-radius:7px;
     cursor:pointer;
     appearance:none;
     -webkit-appearance:none;
+    white-space:nowrap;
+    overflow:hidden;
+    text-overflow:ellipsis;
     background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%237c8aa6'/%3E%3C/svg%3E");
     background-repeat:no-repeat;
     background-position:right 9px center;
@@ -529,6 +542,21 @@
     color:var(--muted);
     text-align:right;
   }
+  .drill-meta{
+    font-size:11px;
+    color:var(--muted);
+    grid-column:1 / -1;
+  }
+  .drill-meta .tag{
+    font-family:'JetBrains Mono',monospace;
+    font-size:9.5px;
+    text-transform:uppercase;
+    letter-spacing:.03em;
+    padding:1px 5px;
+    border:1px solid var(--line);
+    border-radius:3px;
+    margin-left:6px;
+  }
   .drill-empty{
     text-align:center;
     color:var(--muted);
@@ -546,6 +574,94 @@
     border-radius:4px;
     padding:1px 6px;
     margin-right:6px;
+  }
+
+  .toast-stack{
+    position:fixed;
+    bottom:20px;
+    right:20px;
+    z-index:100;
+    display:flex;
+    flex-direction:column;
+    gap:10px;
+    max-width:380px;
+  }
+  .toast{
+    background:var(--panel);
+    border:1px solid var(--danger);
+    border-left:4px solid var(--danger);
+    border-radius:8px;
+    padding:12px 14px;
+    font-size:12.5px;
+    line-height:1.5;
+    box-shadow:0 10px 30px rgba(0,0,0,0.35);
+    display:flex;
+    gap:10px;
+    align-items:flex-start;
+    animation:toast-in .2s ease;
+  }
+  .toast.warn{border-color:var(--test); border-left-color:var(--test);}
+  .toast-icon{flex-shrink:0; font-size:14px;}
+  .toast-body{flex:1;}
+  .toast-title{font-weight:700; margin-bottom:2px;}
+  .toast-close{
+    background:transparent;
+    border:none;
+    color:var(--muted);
+    cursor:pointer;
+    font-size:13px;
+    flex-shrink:0;
+    padding:0;
+  }
+  .toast-close:hover{color:var(--text);}
+  @keyframes toast-in{
+    from{opacity:0; transform:translateY(8px);}
+    to{opacity:1; transform:translateY(0);}
+  }
+
+  .team-icon-cell{width:30px; text-align:center; padding-right:0 !important;}
+  .icon-btn{
+    background:transparent;
+    border:1px solid var(--line);
+    color:var(--muted);
+    border-radius:6px;
+    width:26px;
+    height:26px;
+    cursor:pointer;
+    font-size:12px;
+    line-height:1;
+    display:inline-flex;
+    align-items:center;
+    justify-content:center;
+    transition:all .15s ease;
+  }
+  .icon-btn:hover{border-color:var(--sp); color:var(--sp);}
+
+  .roster-group{margin-bottom:14px;}
+  .roster-group:last-child{margin-bottom:0;}
+  .roster-group-title{
+    font-family:'JetBrains Mono',monospace;
+    font-size:10.5px;
+    text-transform:uppercase;
+    letter-spacing:.06em;
+    color:var(--muted);
+    margin-bottom:6px;
+    padding-bottom:4px;
+    border-bottom:1px solid var(--line);
+  }
+  .roster-person{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    gap:10px;
+    padding:6px 0;
+    font-size:13px;
+  }
+  .roster-cap{
+    font-family:'JetBrains Mono',monospace;
+    font-size:11px;
+    color:var(--muted);
+    white-space:nowrap;
   }
 </style>
 </head>
@@ -599,7 +715,7 @@
 
     <div class="footnote">
       Effort per task = <b>Completed Work</b>, else <b>Original Estimate</b>, else <b>Remaining Work</b>.<br><br>
-      Dev tasks matched on <b>Activity=Development</b>, else title keywords <b>BE / Backend / Dev / FE / Frontend</b>. Testing tasks matched on <b>Activity=Testing</b>, else <b>test(ing)</b> or <b>user story review</b> in the title.
+      Dev vs. testing is decided by, in order: (1) the assignee's <b>Capacity tab</b> activity for that sprint, (2) the task's own <b>Activity</b> field (Development/Testing), (3) title keywords — <b>BE / Backend / Dev / FE / Frontend</b> for dev, <b>test(ing)</b> or <b>user story review</b> for testing.
     </div>
   </div>
 
@@ -674,6 +790,8 @@
   </div>
 </div>
 
+<div class="toast-stack" id="toastStack"></div>
+
 <script>
 // Fallback snapshot — used only if the backend is unreachable, so the
 // dashboard still shows something useful when opened standalone.
@@ -745,7 +863,11 @@ async function initScopeSelectors(){
     const json = await res.json();
 
     const stored = loadStoredScope();
-    const initialProject = stored?.project || json.defaultProject || (json.projects[0] && json.projects[0].name) || null;
+    const projectNames = json.projects.map(p => p.name);
+    const initialProject =
+      (stored?.project && projectNames.includes(stored.project) && stored.project) ||
+      (json.defaultProject && projectNames.includes(json.defaultProject) && json.defaultProject) ||
+      projectNames[0] || null;
 
     projectSel.innerHTML = json.projects.map(p =>
       `<option value="${escapeHtml(p.name)}" ${p.name===initialProject?'selected':''}>${escapeHtml(p.name)}</option>`
@@ -791,8 +913,22 @@ async function loadTeamsAndAreas(project, stored){
     const teamsJson = await teamsRes.json();
     const areasJson = await areasRes.json();
 
-    const initialTeam = stored?.team || teamsJson.defaultTeam || (teamsJson.teams[0] && teamsJson.teams[0].name) || null;
-    const initialArea = stored?.areaPath || areasJson.defaultAreaPath || areasJson.areas[0] || null;
+    const teamNames = teamsJson.teams.map(t => t.name);
+    const areaNames = areasJson.areas;
+
+    // Only trust a candidate value if it actually exists in this project's
+    // real list — a stored/env default can easily point at a different
+    // project's team or area path, and silently assigning it to the <select>
+    // leaves the dropdown showing one thing while our tracked value is another.
+    function pickValid(candidates, validList){
+      for(const c of candidates){
+        if(c && validList.includes(c)) return c;
+      }
+      return validList[0] || null;
+    }
+
+    const initialTeam = pickValid([stored?.team, teamsJson.defaultTeam], teamNames);
+    const initialArea = pickValid([stored?.areaPath, areasJson.defaultAreaPath], areaNames);
 
     teamSel.innerHTML = teamsJson.teams.map(t =>
       `<option value="${escapeHtml(t.name)}" ${t.name===initialTeam?'selected':''}>${escapeHtml(t.name)}</option>`
@@ -819,6 +955,41 @@ async function applyScope(){
   updateBrandTag();
   setScopeStatus('Applying…');
   await loadLiveData();
+}
+
+// ---------- Toasts ----------
+//
+// Used for the one warning that matters silently vs. loudly: when a sprint's
+// capacity data came from the known-incomplete fallback endpoint instead of
+// the rich lookup (see server.js — capacitySource on each sprint). It doesn't
+// change any numbers by itself, it just means some people's Capacity-tab
+// activity may not have been seen, so their tasks could land in "Other"
+// instead of Dev/Testing.
+function showToast(title, message, kind){
+  const stack = document.getElementById('toastStack');
+  const el = document.createElement('div');
+  el.className = 'toast' + (kind === 'warn' ? ' warn' : '');
+  el.innerHTML = `
+    <div class="toast-icon">${kind === 'warn' ? '⚠️' : '⛔'}</div>
+    <div class="toast-body">
+      <div class="toast-title">${escapeHtml(title)}</div>
+      <div>${escapeHtml(message)}</div>
+    </div>
+    <button class="toast-close" aria-label="Dismiss">✕</button>
+  `;
+  el.querySelector('.toast-close').addEventListener('click', () => el.remove());
+  stack.appendChild(el);
+  setTimeout(() => el.remove(), 12000);
+}
+
+function checkCapacityDataQuality(){
+  const incomplete = Object.keys(DATA).filter(s => DATA[s].capacitySource && DATA[s].capacitySource !== 'rich');
+  if(incomplete.length === 0) return;
+  showToast(
+    'Capacity data may be incomplete',
+    `Azure DevOps' capacity API didn't return full data for ${incomplete.length === 1 ? incomplete[0] : incomplete.length + ' sprints'} — some people's Capacity-tab activity may be missing, so their tasks could show up as "Other" instead of Dev/Testing.`,
+    'warn'
+  );
 }
 
 async function loadLiveData(){
@@ -853,6 +1024,7 @@ async function loadLiveData(){
     wrapEl.classList.remove('stale');
     wrapEl.classList.add('live');
     setScopeStatus(`Loaded ${ORDER.length} sprints for ${scope.team || scope.project}`, 'ok');
+    checkCapacityDataQuality();
   } catch(err){
     usingLiveData = false;
     statusEl.textContent = 'Backend unreachable — showing last known snapshot';
@@ -1057,6 +1229,12 @@ function renderStats(){
 // ---------- Drill-down modal ----------
 
 const CAT_LABEL = { dev: 'Dev', testing: 'Testing', other: 'Other' };
+const CLASSIFIED_BY_LABEL = {
+  capacity: 'via Capacity tab',
+  activity: 'via Activity field',
+  'title-keyword': 'via title match',
+  unclassified: 'unclassified',
+};
 
 function collectDetails(sprintList, categories){
   const rows = [];
@@ -1100,6 +1278,10 @@ function openDrilldown(sprintList, categories, label){
           from story:
           ${r.storyUrl ? `<a href="${r.storyUrl}" target="_blank" rel="noopener">${escapeHtml(r.storyTitle)}</a>` : escapeHtml(r.storyTitle || '')}
         </div>
+        ${r.assignedTo || r.classifiedBy ? `<div class="drill-meta">
+          ${r.assignedTo ? escapeHtml(r.assignedTo) : 'Unassigned'}
+          ${r.classifiedBy ? `<span class="tag">${escapeHtml(CLASSIFIED_BY_LABEL[r.classifiedBy] || r.classifiedBy)}</span>` : ''}
+        </div>` : ''}
         <div class="drill-source">${r.effortSource || ''}</div>
       </div>
     `).join('');
@@ -1144,6 +1326,7 @@ function renderTable(){
     const otherPct = total ? (d.other/total*100) : 0;
     return `
       <tr>
+        <td class="team-icon-cell"><button type="button" class="icon-btn" data-team-sprint="${escapeHtml(s)}" title="Show team for this sprint" aria-label="Show team for ${escapeHtml(s)}">👥</button></td>
         <td class="mono">${s.replace('Sprint ','')}</td>
         <td class="num">${d.stories}</td>
         <td class="num">${fmt(d.sp,1)}</td>
@@ -1172,6 +1355,7 @@ function renderTable(){
     <table>
       <thead>
         <tr>
+          <th></th>
           <th>Sprint</th>
           <th class="num">Stories</th>
           <th class="num">Points</th>
@@ -1186,6 +1370,7 @@ function renderTable(){
       <tbody>
         ${rows}
         <tr class="total-row">
+          <td></td>
           <td>Total</td>
           <td class="num">${totalStories}</td>
           <td class="num">${fmt(totalSp,1)}</td>
@@ -1210,6 +1395,52 @@ function renderTable(){
       openDrilldown(sprintList, categories, labelText);
     });
   });
+
+  wrap.querySelectorAll('.icon-btn[data-team-sprint]').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      openTeamRoster(btn.getAttribute('data-team-sprint'));
+    });
+  });
+}
+
+function openTeamRoster(sprintName){
+  const d = DATA[sprintName];
+  const roster = (d && d.roster) || [];
+
+  document.getElementById('drillTitle').textContent = `Team — ${sprintName.replace('Sprint ','')}`;
+  document.getElementById('drillSub').textContent = roster.length
+    ? `${roster.length} ${roster.length === 1 ? 'person' : 'people'} with Capacity set this sprint`
+    : '';
+
+  const body = document.getElementById('drillBody');
+  if(roster.length === 0){
+    body.innerHTML = `<div class="drill-empty">
+      No Capacity-tab data available for this sprint.${usingLiveData ? '' : ' Connect to the live backend to see the team — the offline snapshot only has totals.'}
+    </div>`;
+  } else {
+    const groups = {};
+    roster.forEach(p => {
+      const key = (p.activities && p.activities.length) ? p.activities.map(a => a.name).join(' + ') : 'No activity set';
+      (groups[key] = groups[key] || []).push(p);
+    });
+    const rank = n => n === 'Development' ? 0 : n === 'Testing' ? 1 : n === 'No activity set' ? 9 : 2;
+    const order = Object.keys(groups).sort((a,b) => rank(a) - rank(b) || a.localeCompare(b));
+
+    body.innerHTML = order.map(key => `
+      <div class="roster-group">
+        <div class="roster-group-title">${escapeHtml(key)}</div>
+        ${groups[key].map(p => `
+          <div class="roster-person">
+            <span>${escapeHtml(p.displayName)}</span>
+            <span class="roster-cap">${(p.activities || []).map(a => `${fmt(a.capacityPerDay,1)}h/day`).join(', ')}</span>
+          </div>
+        `).join('')}
+      </div>
+    `).join('');
+  }
+
+  document.getElementById('drillBackdrop').classList.add('open');
 }
 
 function renderAll(){
