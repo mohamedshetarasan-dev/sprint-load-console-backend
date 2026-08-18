@@ -84,9 +84,111 @@
     margin-bottom:2px;
   }
 
-  .quick-actions{display:flex; gap:8px;}
-  .quick-actions button{
-    flex:1;
+  .scope-field{
+    display:flex;
+    flex-direction:column;
+    gap:4px;
+    margin-bottom:10px;
+  }
+  .scope-field label{
+    font-family:'JetBrains Mono',monospace;
+    font-size:10px;
+    color:var(--muted);
+    text-transform:uppercase;
+    letter-spacing:0.06em;
+  }
+  .scope-field select{
+    width:100%;
+    min-width:0;
+    max-width:100%;
+    background:var(--panel);
+    border:1px solid var(--line);
+    color:var(--text);
+    font-family:'Inter',sans-serif;
+    font-size:12.5px;
+    padding:8px 24px 8px 10px;
+    border-radius:7px;
+    cursor:pointer;
+    appearance:none;
+    -webkit-appearance:none;
+    white-space:nowrap;
+    overflow:hidden;
+    text-overflow:ellipsis;
+    background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%237c8aa6'/%3E%3C/svg%3E");
+    background-repeat:no-repeat;
+    background-position:right 10px center;
+  }
+  .scope-field select:disabled{opacity:0.45; cursor:not-allowed;}
+  .scope-field select:focus{outline:none; border-color:var(--sp);}
+
+  .apply-scope-btn{
+    width:100%;
+    background:linear-gradient(180deg, rgba(124,156,255,0.16), rgba(124,156,255,0.06));
+    border:1px solid var(--sp);
+    color:var(--text);
+    font-family:'JetBrains Mono',monospace;
+    font-size:12px;
+    font-weight:600;
+    padding:9px 10px;
+    border-radius:8px;
+    cursor:pointer;
+    transition:all .15s ease;
+    margin-top:2px;
+  }
+  .apply-scope-btn:hover:not(:disabled){background:rgba(124,156,255,0.24);}
+  .apply-scope-btn:disabled{opacity:0.4; cursor:not-allowed; border-color:var(--line);}
+
+  .scope-status{
+    font-family:'JetBrains Mono',monospace;
+    font-size:10.5px;
+    color:var(--muted);
+    margin-top:8px;
+    min-height:14px;
+  }
+  .scope-status.error{color:var(--danger);}
+  .scope-status.ok{color:var(--dev);}
+
+  .range-select{display:flex; gap:8px; min-width:0;}
+  .range-field{
+    flex:1 1 0;
+    min-width:0;
+    display:flex;
+    flex-direction:column;
+    gap:4px;
+  }
+  .range-field label{
+    font-family:'JetBrains Mono',monospace;
+    font-size:10px;
+    color:var(--muted);
+    text-transform:uppercase;
+    letter-spacing:0.06em;
+  }
+  .range-field select{
+    width:100%;
+    min-width:0;
+    max-width:100%;
+    background:var(--panel);
+    border:1px solid var(--line);
+    color:var(--text);
+    font-family:'JetBrains Mono',monospace;
+    font-size:12px;
+    padding:8px 24px 8px 9px;
+    border-radius:7px;
+    cursor:pointer;
+    appearance:none;
+    -webkit-appearance:none;
+    white-space:nowrap;
+    overflow:hidden;
+    text-overflow:ellipsis;
+    background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%237c8aa6'/%3E%3C/svg%3E");
+    background-repeat:no-repeat;
+    background-position:right 9px center;
+  }
+  .range-field select:focus{outline:none; border-color:var(--sp);}
+
+  .clear-range-btn{
+    width:100%;
+    margin-top:8px;
     background:transparent;
     border:1px solid var(--line);
     color:var(--muted);
@@ -97,10 +199,7 @@
     cursor:pointer;
     transition:all .15s ease;
   }
-  .quick-actions button:hover{
-    border-color:var(--sp);
-    color:var(--text);
-  }
+  .clear-range-btn:hover{border-color:var(--sp); color:var(--text);}
 
   .sprint-list{
     display:flex;
@@ -443,6 +542,21 @@
     color:var(--muted);
     text-align:right;
   }
+  .drill-meta{
+    font-size:11px;
+    color:var(--muted);
+    grid-column:1 / -1;
+  }
+  .drill-meta .tag{
+    font-family:'JetBrains Mono',monospace;
+    font-size:9.5px;
+    text-transform:uppercase;
+    letter-spacing:.03em;
+    padding:1px 5px;
+    border:1px solid var(--line);
+    border-radius:3px;
+    margin-left:6px;
+  }
   .drill-empty{
     text-align:center;
     color:var(--muted);
@@ -461,6 +575,94 @@
     padding:1px 6px;
     margin-right:6px;
   }
+
+  .toast-stack{
+    position:fixed;
+    bottom:20px;
+    right:20px;
+    z-index:100;
+    display:flex;
+    flex-direction:column;
+    gap:10px;
+    max-width:380px;
+  }
+  .toast{
+    background:var(--panel);
+    border:1px solid var(--danger);
+    border-left:4px solid var(--danger);
+    border-radius:8px;
+    padding:12px 14px;
+    font-size:12.5px;
+    line-height:1.5;
+    box-shadow:0 10px 30px rgba(0,0,0,0.35);
+    display:flex;
+    gap:10px;
+    align-items:flex-start;
+    animation:toast-in .2s ease;
+  }
+  .toast.warn{border-color:var(--test); border-left-color:var(--test);}
+  .toast-icon{flex-shrink:0; font-size:14px;}
+  .toast-body{flex:1;}
+  .toast-title{font-weight:700; margin-bottom:2px;}
+  .toast-close{
+    background:transparent;
+    border:none;
+    color:var(--muted);
+    cursor:pointer;
+    font-size:13px;
+    flex-shrink:0;
+    padding:0;
+  }
+  .toast-close:hover{color:var(--text);}
+  @keyframes toast-in{
+    from{opacity:0; transform:translateY(8px);}
+    to{opacity:1; transform:translateY(0);}
+  }
+
+  .team-icon-cell{width:30px; text-align:center; padding-right:0 !important;}
+  .icon-btn{
+    background:transparent;
+    border:1px solid var(--line);
+    color:var(--muted);
+    border-radius:6px;
+    width:26px;
+    height:26px;
+    cursor:pointer;
+    font-size:12px;
+    line-height:1;
+    display:inline-flex;
+    align-items:center;
+    justify-content:center;
+    transition:all .15s ease;
+  }
+  .icon-btn:hover{border-color:var(--sp); color:var(--sp);}
+
+  .roster-group{margin-bottom:14px;}
+  .roster-group:last-child{margin-bottom:0;}
+  .roster-group-title{
+    font-family:'JetBrains Mono',monospace;
+    font-size:10.5px;
+    text-transform:uppercase;
+    letter-spacing:.06em;
+    color:var(--muted);
+    margin-bottom:6px;
+    padding-bottom:4px;
+    border-bottom:1px solid var(--line);
+  }
+  .roster-person{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    gap:10px;
+    padding:6px 0;
+    font-size:13px;
+  }
+  .roster-cap{
+    font-family:'JetBrains Mono',monospace;
+    font-size:11px;
+    color:var(--muted);
+    white-space:nowrap;
+  }
 </style>
 </head>
 <body>
@@ -468,19 +670,42 @@
 <div class="wrap">
   <div class="sidebar">
     <div class="brand">
-      <div class="tag">TameeniPortal · Motor ShortTerm</div>
+      <div class="tag" id="brandTag">Loading…</div>
       <h1>Sprint Load Console</h1>
       <p>Story points vs. execution time, split by dev &amp; testing effort.</p>
     </div>
 
     <div>
-      <div class="sidebar-section-label">Quick select</div>
-      <div class="quick-actions">
-        <button id="btnAll">All</button>
-        <button id="btnQ1">Q1 only</button>
-        <button id="btnQ2">Q2 only</button>
-        <button id="btnNone">Clear</button>
+      <div class="sidebar-section-label" style="margin-bottom:8px;">Scope</div>
+      <div class="scope-field">
+        <label for="selProject">Project</label>
+        <select id="selProject" disabled><option>Loading…</option></select>
       </div>
+      <div class="scope-field">
+        <label for="selTeam">Team</label>
+        <select id="selTeam" disabled><option>Select a project first</option></select>
+      </div>
+      <div class="scope-field">
+        <label for="selArea">Area Path</label>
+        <select id="selArea" disabled><option>Select a project first</option></select>
+      </div>
+      <button id="btnApplyScope" class="apply-scope-btn" disabled>Apply &amp; reload sprints</button>
+      <div class="scope-status" id="scopeStatus"></div>
+    </div>
+
+    <div>
+      <div class="sidebar-section-label" style="margin-bottom:8px;">Sprint range</div>
+      <div class="range-select">
+        <div class="range-field">
+          <label for="selFrom">From</label>
+          <select id="selFrom"><option>—</option></select>
+        </div>
+        <div class="range-field">
+          <label for="selTo">To</label>
+          <select id="selTo"><option>—</option></select>
+        </div>
+      </div>
+      <button id="btnClearRange" class="clear-range-btn">Clear selection</button>
     </div>
 
     <div>
@@ -490,7 +715,7 @@
 
     <div class="footnote">
       Effort per task = <b>Completed Work</b>, else <b>Original Estimate</b>, else <b>Remaining Work</b>.<br><br>
-      Dev tasks matched on <b>BE / Backend / Dev / FE / Frontend</b>. Testing tasks matched on <b>test(ing)</b> or <b>user story review</b>. <b>Sprint 4.Q1.26</b> has zero linked stories in source data — likely a tracking gap for that sprint.
+      Dev vs. testing is decided by, in order: (1) the assignee's <b>Capacity tab</b> activity for that sprint, (2) the task's own <b>Activity</b> field (Development/Testing), (3) title keywords — <b>BE / Backend / Dev / FE / Frontend</b> for dev, <b>test(ing)</b> or <b>user story review</b> for testing.
     </div>
   </div>
 
@@ -565,6 +790,8 @@
   </div>
 </div>
 
+<div class="toast-stack" id="toastStack"></div>
+
 <script>
 // Fallback snapshot — used only if the backend is unreachable, so the
 // dashboard still shows something useful when opened standalone.
@@ -590,14 +817,202 @@ let selected = new Set(ORDER);
 let usingLiveData = false;
 
 const API_BASE = ''; // same-origin: backend serves this file from /public
+const SCOPE_STORAGE_KEY = 'sprintConsole.scope';
+
+let scope = { project: null, team: null, areaPath: null };
+
+function loadStoredScope(){
+  try{
+    const raw = localStorage.getItem(SCOPE_STORAGE_KEY);
+    if(raw) return JSON.parse(raw);
+  } catch(e){ /* ignore corrupt storage */ }
+  return null;
+}
+function saveScope(){
+  try{ localStorage.setItem(SCOPE_STORAGE_KEY, JSON.stringify(scope)); } catch(e){}
+}
+
+function setScopeStatus(msg, kind){
+  const el = document.getElementById('scopeStatus');
+  el.textContent = msg;
+  el.classList.remove('error','ok');
+  if(kind) el.classList.add(kind);
+}
+
+function updateBrandTag(){
+  const tag = document.getElementById('brandTag');
+  if(scope.project && scope.team){
+    tag.textContent = `${scope.project} · ${scope.team}`;
+  } else if(scope.project){
+    tag.textContent = scope.project;
+  } else {
+    tag.textContent = 'No project selected';
+  }
+}
+
+async function initScopeSelectors(){
+  const projectSel = document.getElementById('selProject');
+  const teamSel = document.getElementById('selTeam');
+  const areaSel = document.getElementById('selArea');
+  const applyBtn = document.getElementById('btnApplyScope');
+
+  try{
+    setScopeStatus('Loading projects…');
+    const res = await fetch(`${API_BASE}/api/projects`);
+    if(!res.ok) throw new Error('status ' + res.status);
+    const json = await res.json();
+
+    const stored = loadStoredScope();
+    const projectNames = json.projects.map(p => p.name);
+    const initialProject =
+      (stored?.project && projectNames.includes(stored.project) && stored.project) ||
+      (json.defaultProject && projectNames.includes(json.defaultProject) && json.defaultProject) ||
+      projectNames[0] || null;
+
+    projectSel.innerHTML = json.projects.map(p =>
+      `<option value="${escapeHtml(p.name)}" ${p.name===initialProject?'selected':''}>${escapeHtml(p.name)}</option>`
+    ).join('');
+    projectSel.disabled = false;
+
+    if(initialProject){
+      scope.project = initialProject;
+      await loadTeamsAndAreas(initialProject, stored);
+    }
+    setScopeStatus('');
+  } catch(err){
+    setScopeStatus('Could not load projects from backend — using offline snapshot', 'error');
+  }
+
+  projectSel.addEventListener('change', async () => {
+    scope.project = projectSel.value;
+    scope.team = null;
+    scope.areaPath = null;
+    await loadTeamsAndAreas(scope.project, null);
+  });
+  teamSel.addEventListener('change', () => { scope.team = teamSel.value; });
+  areaSel.addEventListener('change', () => { scope.areaPath = areaSel.value; });
+  applyBtn.addEventListener('click', applyScope);
+}
+
+async function loadTeamsAndAreas(project, stored){
+  const teamSel = document.getElementById('selTeam');
+  const areaSel = document.getElementById('selArea');
+  const applyBtn = document.getElementById('btnApplyScope');
+  teamSel.disabled = true;
+  areaSel.disabled = true;
+  applyBtn.disabled = true;
+  teamSel.innerHTML = `<option>Loading…</option>`;
+  areaSel.innerHTML = `<option>Loading…</option>`;
+
+  try{
+    const [teamsRes, areasRes] = await Promise.all([
+      fetch(`${API_BASE}/api/teams?project=${encodeURIComponent(project)}`),
+      fetch(`${API_BASE}/api/areas?project=${encodeURIComponent(project)}`),
+    ]);
+    if(!teamsRes.ok || !areasRes.ok) throw new Error('failed to load teams/areas');
+    const teamsJson = await teamsRes.json();
+    const areasJson = await areasRes.json();
+
+    const teamNames = teamsJson.teams.map(t => t.name);
+    const areaNames = areasJson.areas;
+
+    // Only trust a candidate value if it actually exists in this project's
+    // real list — a stored/env default can easily point at a different
+    // project's team or area path, and silently assigning it to the <select>
+    // leaves the dropdown showing one thing while our tracked value is another.
+    function pickValid(candidates, validList){
+      for(const c of candidates){
+        if(c && validList.includes(c)) return c;
+      }
+      return validList[0] || null;
+    }
+
+    const initialTeam = pickValid([stored?.team, teamsJson.defaultTeam], teamNames);
+    const initialArea = pickValid([stored?.areaPath, areasJson.defaultAreaPath], areaNames);
+
+    teamSel.innerHTML = teamsJson.teams.map(t =>
+      `<option value="${escapeHtml(t.name)}" ${t.name===initialTeam?'selected':''}>${escapeHtml(t.name)}</option>`
+    ).join('');
+    areaSel.innerHTML = areasJson.areas.map(a =>
+      `<option value="${escapeHtml(a)}" ${a===initialArea?'selected':''}>${escapeHtml(a)}</option>`
+    ).join('');
+
+    scope.team = initialTeam;
+    scope.areaPath = initialArea;
+    teamSel.disabled = false;
+    areaSel.disabled = false;
+    applyBtn.disabled = false;
+    updateBrandTag();
+  } catch(err){
+    setScopeStatus('Could not load teams/areas for this project', 'error');
+    teamSel.innerHTML = `<option>Failed to load</option>`;
+    areaSel.innerHTML = `<option>Failed to load</option>`;
+  }
+}
+
+async function applyScope(){
+  saveScope();
+  updateBrandTag();
+  setScopeStatus('Applying…');
+  await loadLiveData();
+}
+
+// ---------- Toasts ----------
+//
+// Used for the one warning that matters silently vs. loudly: when a sprint's
+// capacity data came from the known-incomplete fallback endpoint instead of
+// the rich lookup (see server.js — capacitySource on each sprint). It doesn't
+// change any numbers by itself, it just means some people's Capacity-tab
+// activity may not have been seen, so their tasks could land in "Other"
+// instead of Dev/Testing.
+function showToast(title, message, kind){
+  const stack = document.getElementById('toastStack');
+  const el = document.createElement('div');
+  el.className = 'toast' + (kind === 'warn' ? ' warn' : '');
+  el.innerHTML = `
+    <div class="toast-icon">${kind === 'warn' ? '⚠️' : '⛔'}</div>
+    <div class="toast-body">
+      <div class="toast-title">${escapeHtml(title)}</div>
+      <div>${escapeHtml(message)}</div>
+    </div>
+    <button class="toast-close" aria-label="Dismiss">✕</button>
+  `;
+  el.querySelector('.toast-close').addEventListener('click', () => el.remove());
+  stack.appendChild(el);
+  setTimeout(() => el.remove(), 12000);
+}
+
+function checkCapacityDataQuality(){
+  const incomplete = Object.keys(DATA).filter(s => DATA[s].capacitySource && DATA[s].capacitySource !== 'rich');
+  if(incomplete.length === 0) return;
+  showToast(
+    'Capacity data may be incomplete',
+    `Azure DevOps' capacity API didn't return full data for ${incomplete.length === 1 ? incomplete[0] : incomplete.length + ' sprints'} — some people's Capacity-tab activity may be missing, so their tasks could show up as "Other" instead of Dev/Testing.`,
+    'warn'
+  );
+}
 
 async function loadLiveData(){
   const statusEl = document.getElementById('dataSourceStatus');
   const wrapEl = document.getElementById('dataSourceWrap');
+
+  if(!scope.project || !scope.areaPath){
+    statusEl.textContent = 'Select a project and area path';
+    wrapEl.classList.remove('live');
+    wrapEl.classList.add('stale');
+    return;
+  }
+
+  const params = new URLSearchParams({ project: scope.project, areaPath: scope.areaPath });
+  if(scope.team) params.set('team', scope.team);
+
   try{
     statusEl.textContent = 'Connecting to Azure DevOps…';
-    const res = await fetch(`${API_BASE}/api/sprint-data`);
-    if(!res.ok) throw new Error('Backend returned ' + res.status);
+    const res = await fetch(`${API_BASE}/api/sprint-data?${params.toString()}`);
+    if(!res.ok){
+      const errJson = await res.json().catch(()=>({}));
+      throw new Error(errJson.error || ('Backend returned ' + res.status));
+    }
     const json = await res.json();
     DATA = json.data;
     ORDER = Object.keys(DATA);
@@ -608,11 +1023,14 @@ async function loadLiveData(){
     statusEl.textContent = json.cached ? 'Live data (cached)' : 'Live data (fresh pull)';
     wrapEl.classList.remove('stale');
     wrapEl.classList.add('live');
+    setScopeStatus(`Loaded ${ORDER.length} sprints for ${scope.team || scope.project}`, 'ok');
+    checkCapacityDataQuality();
   } catch(err){
     usingLiveData = false;
     statusEl.textContent = 'Backend unreachable — showing last known snapshot';
     wrapEl.classList.remove('live');
     wrapEl.classList.add('stale');
+    setScopeStatus(err.message || 'Failed to load sprint data', 'error');
   }
   renderSidebar();
   renderAll();
@@ -634,6 +1052,78 @@ function fmt(n, d=1){
 }
 
 function renderSidebar(){
+  const list = document.getElementById('sprintList');
+  list.innerHTML = '';
+  ORDER.forEach(s => {
+    const d = DATA[s];
+    const empty = d.stories === 0;
+    const pill = document.createElement('div');
+    pill.className = 'sprint-pill' + (selected.has(s) ? ' active' : '') + (empty ? ' disabled' : '');
+    pill.innerHTML = `
+      <div class="left">
+        <span class="dot"></span>
+        <span class="name">${s.replace('Sprint ','')}</span>
+      </div>
+      <span class="count">${d.stories} st</span>
+    `;
+    if(!empty){
+      pill.addEventListener('click', () => {
+        if(selected.has(s)) selected.delete(s); else selected.add(s);
+        renderSidebar();
+        renderAll();
+      });
+    }
+    list.appendChild(pill);
+  });
+  renderRangeSelectors();
+}
+
+function renderRangeSelectors(){
+  const fromSel = document.getElementById('selFrom');
+  const toSel = document.getElementById('selTo');
+  if(ORDER.length === 0){
+    fromSel.innerHTML = '<option>—</option>';
+    toSel.innerHTML = '<option>—</option>';
+    return;
+  }
+
+  const options = ORDER.map((s,i) =>
+    `<option value="${i}">${escapeHtml(s.replace('Sprint ',''))}</option>`
+  ).join('');
+
+  // preserve current from/to indices if still valid, else default to current selection bounds
+  const selectedIdx = ORDER.map((s,i) => selected.has(s) ? i : -1).filter(i => i >= 0);
+  const defaultFrom = selectedIdx.length ? Math.min(...selectedIdx) : 0;
+  const defaultTo = selectedIdx.length ? Math.max(...selectedIdx) : ORDER.length - 1;
+
+  fromSel.innerHTML = options;
+  toSel.innerHTML = options;
+  fromSel.value = defaultFrom;
+  toSel.value = defaultTo;
+}
+
+function applySprintRange(){
+  const fromSel = document.getElementById('selFrom');
+  const toSel = document.getElementById('selTo');
+  const fromIdx = parseInt(fromSel.value, 10);
+  const toIdx = parseInt(toSel.value, 10);
+  if(Number.isNaN(fromIdx) || Number.isNaN(toIdx)) return;
+
+  const lo = Math.min(fromIdx, toIdx);
+  const hi = Math.max(fromIdx, toIdx);
+  selected = new Set(ORDER.slice(lo, hi + 1).filter(s => DATA[s].stories > 0));
+
+  // re-sync both dropdowns to the normalized order without re-triggering renderRangeSelectors' index recompute loop
+  fromSel.value = lo;
+  toSel.value = hi;
+
+  renderSidebarPillsOnly();
+  renderAll();
+}
+
+// updates just the pill highlighting (not the range dropdowns) to avoid
+// clobbering the from/to values mid-interaction
+function renderSidebarPillsOnly(){
   const list = document.getElementById('sprintList');
   list.innerHTML = '';
   ORDER.forEach(s => {
@@ -739,6 +1229,12 @@ function renderStats(){
 // ---------- Drill-down modal ----------
 
 const CAT_LABEL = { dev: 'Dev', testing: 'Testing', other: 'Other' };
+const CLASSIFIED_BY_LABEL = {
+  capacity: 'via Capacity tab',
+  activity: 'via Activity field',
+  'title-keyword': 'via title match',
+  unclassified: 'unclassified',
+};
 
 function collectDetails(sprintList, categories){
   const rows = [];
@@ -782,6 +1278,10 @@ function openDrilldown(sprintList, categories, label){
           from story:
           ${r.storyUrl ? `<a href="${r.storyUrl}" target="_blank" rel="noopener">${escapeHtml(r.storyTitle)}</a>` : escapeHtml(r.storyTitle || '')}
         </div>
+        ${r.assignedTo || r.classifiedBy ? `<div class="drill-meta">
+          ${r.assignedTo ? escapeHtml(r.assignedTo) : 'Unassigned'}
+          ${r.classifiedBy ? `<span class="tag">${escapeHtml(CLASSIFIED_BY_LABEL[r.classifiedBy] || r.classifiedBy)}</span>` : ''}
+        </div>` : ''}
         <div class="drill-source">${r.effortSource || ''}</div>
       </div>
     `).join('');
@@ -826,6 +1326,7 @@ function renderTable(){
     const otherPct = total ? (d.other/total*100) : 0;
     return `
       <tr>
+        <td class="team-icon-cell"><button type="button" class="icon-btn" data-team-sprint="${escapeHtml(s)}" title="Show team for this sprint" aria-label="Show team for ${escapeHtml(s)}">👥</button></td>
         <td class="mono">${s.replace('Sprint ','')}</td>
         <td class="num">${d.stories}</td>
         <td class="num">${fmt(d.sp,1)}</td>
@@ -854,6 +1355,7 @@ function renderTable(){
     <table>
       <thead>
         <tr>
+          <th></th>
           <th>Sprint</th>
           <th class="num">Stories</th>
           <th class="num">Points</th>
@@ -868,6 +1370,7 @@ function renderTable(){
       <tbody>
         ${rows}
         <tr class="total-row">
+          <td></td>
           <td>Total</td>
           <td class="num">${totalStories}</td>
           <td class="num">${fmt(totalSp,1)}</td>
@@ -892,6 +1395,52 @@ function renderTable(){
       openDrilldown(sprintList, categories, labelText);
     });
   });
+
+  wrap.querySelectorAll('.icon-btn[data-team-sprint]').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      openTeamRoster(btn.getAttribute('data-team-sprint'));
+    });
+  });
+}
+
+function openTeamRoster(sprintName){
+  const d = DATA[sprintName];
+  const roster = (d && d.roster) || [];
+
+  document.getElementById('drillTitle').textContent = `Team — ${sprintName.replace('Sprint ','')}`;
+  document.getElementById('drillSub').textContent = roster.length
+    ? `${roster.length} ${roster.length === 1 ? 'person' : 'people'} with Capacity set this sprint`
+    : '';
+
+  const body = document.getElementById('drillBody');
+  if(roster.length === 0){
+    body.innerHTML = `<div class="drill-empty">
+      No Capacity-tab data available for this sprint.${usingLiveData ? '' : ' Connect to the live backend to see the team — the offline snapshot only has totals.'}
+    </div>`;
+  } else {
+    const groups = {};
+    roster.forEach(p => {
+      const key = (p.activities && p.activities.length) ? p.activities.map(a => a.name).join(' + ') : 'No activity set';
+      (groups[key] = groups[key] || []).push(p);
+    });
+    const rank = n => n === 'Development' ? 0 : n === 'Testing' ? 1 : n === 'No activity set' ? 9 : 2;
+    const order = Object.keys(groups).sort((a,b) => rank(a) - rank(b) || a.localeCompare(b));
+
+    body.innerHTML = order.map(key => `
+      <div class="roster-group">
+        <div class="roster-group-title">${escapeHtml(key)}</div>
+        ${groups[key].map(p => `
+          <div class="roster-person">
+            <span>${escapeHtml(p.displayName)}</span>
+            <span class="roster-cap">${(p.activities || []).map(a => `${fmt(a.capacityPerDay,1)}h/day`).join(', ')}</span>
+          </div>
+        `).join('')}
+      </div>
+    `).join('');
+  }
+
+  document.getElementById('drillBackdrop').classList.add('open');
 }
 
 function renderAll(){
@@ -900,17 +1449,23 @@ function renderAll(){
   renderTable();
 }
 
-document.getElementById('btnAll').addEventListener('click', ()=>{ selected = new Set(ORDER.filter(s=>DATA[s].stories>0)); renderSidebar(); renderAll(); });
-document.getElementById('btnNone').addEventListener('click', ()=>{ selected = new Set(); renderSidebar(); renderAll(); });
-document.getElementById('btnQ1').addEventListener('click', ()=>{ selected = new Set(Q1.filter(s=>DATA[s].stories>0)); renderSidebar(); renderAll(); });
-document.getElementById('btnQ2').addEventListener('click', ()=>{ selected = new Set(Q2.filter(s=>DATA[s].stories>0)); renderSidebar(); renderAll(); });
+document.getElementById('selFrom').addEventListener('change', applySprintRange);
+document.getElementById('selTo').addEventListener('change', applySprintRange);
+document.getElementById('btnClearRange').addEventListener('click', () => {
+  selected = new Set();
+  renderSidebar();
+  renderAll();
+});
 
 document.getElementById('btnRefresh').addEventListener('click', refreshLiveData);
 
 selected = new Set(ORDER.filter(s => DATA[s].stories > 0));
 renderSidebar();
 renderAll();
-loadLiveData();
+updateBrandTag();
+initScopeSelectors().then(() => {
+  if(scope.project && scope.areaPath) loadLiveData();
+});
 </script>
 
 </body>
